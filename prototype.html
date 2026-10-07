@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Technical Assessment Platform</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      color: #0f172a;
+      overflow: hidden;
+    }
+
+    /* READINESS CHECK & INSTRUCTIONS CONTAINER */
+    .instructions-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      background: #ffffff;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      overflow-y: auto;
+    }
+    .instructions-card {
+      width: 100%;
+      max-width: 880px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 44px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+      display: flex;
+      flex-direction: column;
+    }
+    .instructions-card h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .instructions-subtitle {
+      font-size: 0.95rem;
+      color: #64748b;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .instructions-section {
+      margin-bottom: 20px;
+    }
+    .instructions-section h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0284c7;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .instructions-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.92rem;
+      color: #334155;
+      line-height: 1.55;
+    }
+    .instructions-list li {
+      position: relative;
+      padding-left: 18px;
+    }
+    .instructions-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #0284c7;
+      font-weight: bold;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    /* READINESS ACKNOWLEDGEMENT & START ROW */
+    .lobby-action-row {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .ack-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      color: #334155;
+      font-weight: 500;
+      user-select: none;
+    }
+    .ack-checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #0284c7;
+      cursor: pointer;
+    }
+
+    /* ASSESSMENT WORKSPACE */
+    .app-container {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* LEFT SIDEBAR: METRICS & NON-CLICKABLE QUESTION PALETTE */
+    .sidebar {
+      width: 320px;
+      min-width: 320px;
+      height: 100%;
+      background: #f8fafc;
+      border-right: 1px solid #e2e8f0;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .stat-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .stat-val {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .timer-display {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #0284c7;
+      letter-spacing: -0.02em;
+    }
+
+    /* QUESTION PALETTE: DISPLAY INDICATOR ONLY (NON-INTERACTIVE) */
+    .palette-section {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .palette-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      font-weight: 700;
+    }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .palette-item {
+      padding: 8px 0;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #64748b;
+      cursor: default;
+      user-select: none;
+      pointer-events: none;
+    }
+    .palette-item.active {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+      font-weight: 700;
+    }
+    .palette-item.coding {
+      border: 1.5px solid #94a3b8;
+      color: #475569;
+    }
+    .palette-item.coding.active {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+    }
+
+    /* RIGHT MAIN CONTENT: FULL PAGE WORKSPACE */
+    .main-workspace {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      padding: 36px 54px;
+      overflow-y: auto;
+    }
+    .workspace-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .section-pill {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .progress-pill {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    /* QUESTION PROMPT CARD */
+    .question-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 22px 26px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .question-prompt {
+      font-size: 1.08rem;
+      line-height: 1.6;
+      color: #0f172a;
+      font-weight: 500;
+      white-space: pre-wrap;
+    }
+
+    /* MCQ OPTIONS LIST */
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 15px 20px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.98rem;
+      color: #1e293b;
+      transition: all 0.15s ease-in-out;
+      background: #ffffff;
+    }
+    .option-label:hover {
+      border-color: #0284c7;
+      background: #f8fafc;
+    }
+    .option-label input[type="radio"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #0284c7;
+      cursor: pointer;
+    }
+
+    /* LIVE CODING ENVIRONMENT (Q39 & Q40) */
+    .coding-container {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .editor-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 10px 16px;
+      border: 1px solid #e2e8f0;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+    }
+    .editor-toolbar label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+    }
+    .editor-toolbar select {
+      padding: 6px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #0f172a;
+      outline: none;
+      background: #ffffff;
+      cursor: pointer;
+    }
+    .code-editor {
+      width: 100%;
+      height: 250px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      padding: 16px;
+      border: 1px solid #1e293b;
+      border-radius: 0 0 8px 8px;
+      resize: vertical;
+      outline: none;
+      white-space: pre;
+    }
+    .console-panel {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.85rem;
+      display: none;
+    }
+    .console-panel h4 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+    .test-case-item {
+      padding: 6px 0;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      color: #334155;
+    }
+    .test-case-item:last-child {
+      border-bottom: none;
+    }
+    .status-pass {
+      color: #059669;
+      font-weight: 700;
+    }
+
+    /* ACTION BUTTONS */
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      padding-top: 18px;
+      border-top: 1px solid #f1f5f9;
+    }
+    button {
+      padding: 12px 28px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-skip {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-skip:hover:not(:disabled) {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .btn-skip:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .action-right-group {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-run {
+      background: #f8fafc;
+      color: #0284c7;
+      border: 1.5px solid #0284c7;
+    }
+    .btn-run:hover {
+      background: #e0f2fe;
+    }
+    .btn-submit {
+      background: #0284c7;
+      color: #ffffff;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: #0369a1;
+    }
+    .btn-submit:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    /* FINAL RESULTS METRICS SCREEN */
+    .results-screen {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      background: #ffffff;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-box {
+      background: #ffffff;
+      width: 520px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 36px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+      text-align: center;
+    }
+    .modal-box h2 {
+      font-size: 1.6rem;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .modal-box p {
+      color: #64748b;
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      text-align: left;
+    }
+    .breakdown-table td {
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+      color: #475569;
+    }
+    .breakdown-table td:last-child {
+      text-align: right;
+      font-weight: 700;
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- READINESS CHECK & INSTRUCTIONS SCREEN -->
+  <div class="instructions-container" id="instructionScreen">
+    <div class="instructions-card">
+      <h1>Technical Assessment Instructions</h1>
+      <p class="instructions-subtitle">Candidate Examination Guidelines and Evaluation Rules</p>
+
+      <div class="instructions-section">
+        <h3>1. Structure &amp; Format</h3>
+        <ul class="instructions-list">
+          <li>The assessment contains a total of <strong>40 questions</strong> covering four curriculum sections: Data Communication &amp; Networks (DCN), Operating Systems (OS), Database Management Systems (DBMS), and Data Structures &amp; Algorithms (DSA).</li>
+          <li>Questions 1 to 38 are adaptive theoretical Multiple-Choice Questions (MCQs).</li>
+          <li>Questions 39 and 40 are live coding challenges evaluated against public and hidden test cases in an isolated execution runtime.</li>
+          <li>Questions adapt in real time across four difficulty tiers: Easy (+2 pts), Moderate (+4 pts), Hard (+6 pts), and Very Hard (+10 pts). Answering correctly advances you to higher tiers, while incorrect answers step you down and incur a <strong>-1 pt penalty</strong>. Each domain section (Q1, Q11, Q21, Q31) automatically starts at Moderate.</li>
+        </ul>
+      </div>
+
+      <div class="instructions-section">
+        <h3>2. Timing &amp; Navigation</h3>
+        <ul class="instructions-list">
+          <li>You are allotted a strict <strong>90-minute floating countdown timer</strong> that begins the moment you click Start Exam.</li>
+          <li>Questions are delivered sequentially through the adaptive engine; direct navigation through the question palette is disabled to maintain integrity.</li>
+          <li>You have a universal budget of <strong>10 skips</strong>. Using a skip preserves your current difficulty tier and rotates to a different subtopic within that section.</li>
+        </ul>
+      </div>
+
+      <div class="instructions-section">
+        <h3>3. Proctoring &amp; Submission Rules</h3>
+        <ul class="instructions-list">
+          <li>Anti-cheat mechanisms are strictly enforced: switching tabs, blurring the window, or using unauthorized shortcuts will trigger immediate proctoring strikes.</li>
+          <li>Your code and answers are auto-saved as you submit each question.</li>
+          <li>Once submitted, answers cannot be modified. The assessment will automatically conclude once Question 40 is finalized or when the timer expires.</li>
+        </ul>
+      </div>
+
+      <div class="lobby-action-row">
+        <label class="ack-checkbox-label">
+          <input type="checkbox" id="rulesAck" onchange="document.getElementById('btnStartExam').disabled = !this.checked">
+          <span>I have read all instructions and confirm that I am ready to begin</span>
+        </label>
+        <button class="btn-submit" id="btnStartExam" disabled onclick="startExam()">Start Exam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN ASSESSMENT INTERFACE -->
+  <div class="app-container" id="examWorkspace">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <h2>Assessment Cockpit</h2>
+      
+      <div class="stat-group">
+        <div class="stat-item">
+          <span class="stat-label">Remaining Duration</span>
+          <div class="timer-display" id="timer">90:00</div>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-label">Current Domain</span>
+          <span class="stat-val" id="sidebarSection">Data Communication &amp; Networks</span>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-label">Progress</span>
+          <span class="stat-val" id="sidebarProgress">Question 1 of 40</span>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-label">Skip Allowance</span>
+          <span class="stat-val" id="sidebarSkips">10 Available</span>
+        </div>
+      </div>
+
+      <!-- QUESTION PALETTE: INDICATOR ONLY -->
+      <div class="palette-section">
+        <span class="palette-title">Question Palette</span>
+        <div class="palette-grid" id="paletteGrid"></div>
+      </div>
+    </aside>
+
+    <!-- MAIN EXAM WORKSPACE -->
+    <main class="main-workspace">
+      
+      <div class="workspace-header">
+        <span class="section-pill" id="headerSectionPill">SECTION 1: DCN</span>
+        <span class="progress-pill" id="headerQuestionPill">Question 1 / 40</span>
+      </div>
+
+      <!-- QUESTION PROMPT -->
+      <div class="question-card">
+        <div class="question-prompt" id="questionPrompt">Loading question...</div>
+      </div>
+
+      <!-- MCQ OPTIONS (Q1 - Q38) -->
+      <div class="options-list" id="optionsContainer"></div>
+
+      <!-- LIVE CODING ENVIRONMENT (Q39 & Q40) -->
+      <div class="coding-container" id="codingContainer">
+        <div class="editor-toolbar">
+          <label for="langSelect">Language Runtime</label>
+          <select id="langSelect" onchange="handleLanguageChange()">
+            <option value="python">Python 3 (CPython 3.11)</option>
+            <option value="cpp">C++ (GCC 12.2 / C++20)</option>
+            <option value="java">Java (OpenJDK 17)</option>
+          </select>
+        </div>
+        <textarea class="code-editor" id="codeEditor" spellcheck="false"></textarea>
+
+        <!-- Test Case Run Console -->
+        <div class="console-panel" id="consolePanel">
+          <h4>Execution Diagnostics (Sandbox Runner)</h4>
+          <div class="test-case-item">
+            <span>Case 1 (Public): Input: [2, 7, 11, 15], Target: 9</span>
+            <span class="status-pass">Passed (12ms)</span>
+          </div>
+          <div class="test-case-item">
+            <span>Case 2 (Public): Input: [3, 2, 4], Target: 6</span>
+            <span class="status-pass">Passed (8ms)</span>
+          </div>
+          <div class="test-case-item">
+            <span>Case 3 (Public): Input: [3, 3], Target: 6</span>
+            <span class="status-pass">Passed (7ms)</span>
+          </div>
+          <div class="test-case-item" style="font-weight:600; color:#0284c7;">
+            <span>Hidden Validation Suite: 3 / 3 Hidden Cases</span>
+            <span class="status-pass">Passed (Masked)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="button-row">
+        <button class="btn-skip" id="btnSkip" onclick="handleAction('SKIP')">Skip Question</button>
+        <div class="action-right-group">
+          <button class="btn-run" id="btnRunCode" style="display:none;" onclick="handleRunCode()">Run Code</button>
+          <button class="btn-submit" id="btnSubmit" onclick="handleAction('SUBMIT')">Submit Answer</button>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- FINAL RESULTS METRICS SCREEN -->
+  <div class="results-screen" id="resultsModal">
+    <div class="modal-box">
+      <h2>Assessment Completed</h2>
+      <p>Performance summary across DCN, OS, DBMS, and DSA</p>
+
+      <table class="breakdown-table">
+        <tr>
+          <td>Total Questions Evaluated</td>
+          <td>40 Items</td>
+        </tr>
+        <tr>
+          <td>Questions Answered</td>
+          <td id="finalAnswered">40 / 40</td>
+        </tr>
+        <tr>
+          <td>Skips Utilized</td>
+          <td id="finalSkipsUsed">0 / 10</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // --- QUESTION REPOSITORY SLICE (DCN, OS, DBMS, DSA) ---
+    const QUESTION_BANK = [
+      { id: 101, topic: "DCN", subtopic: "Subnetting", tier: "MOD", prompt: "A company requires 6 subnets with at least 25 hosts each on 192.168.1.0/24. What is the minimum subnet mask required?", opts: ["255.255.255.224 (/27)", "255.255.255.192 (/26)", "255.255.255.240 (/28)", "255.255.255.248 (/29)"], key: 0 },
+      { id: 102, topic: "DCN", subtopic: "Routing", tier: "HARD", prompt: "In Link-State Routing (OSPF), which algorithm computes the shortest path tree after link-state advertisements synchronize?", opts: ["Bellman-Ford", "Floyd-Warshall", "Dijkstra SPF", "Distance Vector"], key: 2 },
+      { id: 103, topic: "DCN", subtopic: "TCP_IP", tier: "HARD", prompt: "Which control flag combination indicates an immediate connection reset during an active TCP handshake session?", opts: ["FIN + ACK", "RST", "SYN + PSH", "URG"], key: 1 },
+      { id: 104, topic: "DCN", subtopic: "OSI", tier: "EASY", prompt: "At which layer of the OSI model does hardware MAC framing and physical node-to-node error detection occur?", opts: ["Physical Layer", "Data Link Layer", "Network Layer", "Transport Layer"], key: 1 },
+      { id: 105, topic: "DCN", subtopic: "AppLayer", tier: "MOD", prompt: "Which DNS resource record type maps an IPv6 address directly to its canonical domain hostname?", opts: ["A", "AAAA", "CNAME", "MX"], key: 1 },
+
+      { id: 201, topic: "OS", subtopic: "Scheduling", tier: "MOD", prompt: "In Round Robin CPU Scheduling, what happens if the time quantum (q) tends toward infinity?", opts: ["Degenerates to Shortest Job First", "Degenerates to First-Come First-Served", "Causes immediate thrashing", "Prioritizes I/O bound jobs"], key: 1 },
+      { id: 202, topic: "OS", subtopic: "Memory", tier: "HARD", prompt: "Belady's Anomaly (increased page faults despite more allocated physical page frames) is observed in which page replacement algorithm?", opts: ["LRU", "Optimal", "FIFO", "LFU"], key: 2 },
+      { id: 203, topic: "OS", subtopic: "Deadlock", tier: "MOD", prompt: "Which of the following conditions is NOT required for a system to enter a formal deadlock state under Coffman's conditions?", opts: ["Mutual Exclusion", "Hold and Wait", "Preemption Permitted", "Circular Wait"], key: 2 },
+
+      { id: 301, topic: "DBMS", subtopic: "Transactions", tier: "MOD", prompt: "The Isolation property in ACID database transactions guarantees that:", opts: ["Data is written to persistent NVRAM", "Concurrent transactions execute without dirty read interference", "Primary keys are globally unique", "Rollbacks are disabled"], key: 1 },
+      { id: 302, topic: "DBMS", subtopic: "Normalization", tier: "HARD", prompt: "A relation is in Boyce-Codd Normal Form (BCNF) if and only if for every non-trivial functional dependency X -> Y:", opts: ["Y is a prime attribute", "X is a superkey", "Relation contains no multi-valued dependencies", "Relation is strictly in 2NF"], key: 1 },
+      { id: 303, topic: "DBMS", subtopic: "Indexing", tier: "MOD", prompt: "Why are balanced B+ Trees favored over standard binary search trees (AVL/Red-Black) for relational database indices?", opts: ["High fanout reduces secondary storage block I/O operations", "Smaller node payloads", "Strict O(1) worst-case time", "They do not require balancing"], key: 0 },
+
+      { id: 401, topic: "DSA", subtopic: "Graphs", tier: "MOD", prompt: "What is the optimal time complexity to determine the existence of a topological ordering in a directed graph using Kahn's algorithm?", opts: ["O(V * E)", "O(V + E)", "O(V^2)", "O(log V)"], key: 1 },
+      { id: 402, topic: "DSA", subtopic: "DP", tier: "HARD", prompt: "In the 0/1 Knapsack problem with N elements and maximum capacity W, what is the space-optimized 1D array complexity?", opts: ["O(N * W) time, O(W) space", "O(N^2) space", "O(2^N) time", "O(1) space"], key: 0 }
+    ];
+
+    // --- CODING CHALLENGES (Q39 & Q40) ---
+    const CODING_PROBLEMS = {
+      39: {
+        topic: "DSA",
+        tier: "MOD",
+        title: "DSA Live Coding (Question 39 of 40) — Two Pointer Optimal Pair",
+        prompt: "Given an array of integers nums sorted in non-decreasing order and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may not use the same element twice. Your solution must run in O(N) time and O(1) auxiliary space.",
+        starters: {
+          python: "def twoSum(nums: list[int], target: int) -> list[int]:\n    # Implement O(N) two-pointer solution\n    left, right = 0, len(nums) - 1\n    while left < right:\n        curr = nums[left] + nums[right]\n        if curr == target:\n            return [left, right]\n        elif curr < target:\n            left += 1\n        else:\n            right -= 1\n    return []\n",
+          cpp: "#include <vector>\n\nstd::vector<int> twoSum(const std::vector<int>& nums, int target) {\n    int left = 0, right = nums.size() - 1;\n    while (left < right) {\n        int sum = nums[left] + nums[right];\n        if (sum == target) return {left, right};\n        else if (sum < target) left++;\n        else right--;\n    }\n    return {};\n}\n",
+          java: "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        int left = 0, right = nums.length - 1;\n        while (left < right) {\n            int sum = nums[left] + nums[right];\n            if (sum == target) return new int[]{left, right};\n            else if (sum < target) left++;\n            else right--;\n        }\n        return new int[]{};\n    }\n}\n"
+        }
+      },
+      40: {
+        topic: "DSA",
+        tier: "HARD",
+        title: "DSA Live Coding (Question 40 of 40) — Longest Path in Directed Acyclic Graph",
+        prompt: "Given a directed acyclic graph (DAG) with V vertices and E weighted edges, determine the maximum total path length from a source vertex 0 to any reachable destination vertex.\n\nConstraints: V <= 10^5, E <= 2 * 10^5. Time Limit: 2.0s. Memory Limit: 256MB.",
+        starters: {
+          python: "def findLongestDAGPath(V: int, edges: list[tuple[int, int, int]]) -> int:\n    # Implement topological sort + dynamic programming\n    # Return the maximum total path weight\n    return 0\n",
+          cpp: "#include <vector>\n#include <tuple>\n\nint findLongestDAGPath(int V, const std::vector<std::tuple<int, int, int>>& edges) {\n    // Implement topological order relaxation\n    return 0;\n}\n",
+          java: "class Solution {\n    public int findLongestDAGPath(int V, int[][] edges) {\n        // Implement topological order relaxation\n        return 0;\n    }\n}\n"
+        }
+      }
+    };
+
+    // --- APPLICATION RUNTIME STATE ---
+    const STATE = {
+      qIndex: 1,
+      sections: ["DCN", "OS", "DBMS", "DSA"],
+      sectionNames: {
+        "DCN": "Data Communication & Networks",
+        "OS": "Operating Systems",
+        "DBMS": "Database Management Systems",
+        "DSA": "Data Structures & Algorithms"
+      },
+      currentSectionIdx: 0,
+      currentTier: "MOD",
+      skipsRemaining: 10,
+      totalScore: 0,
+      answersGiven: 0,
+      seenQuestionIds: new Set(),
+      activeQuestion: null,
+      previousSubtopic: null
+    };
+
+    const TIER_POINTS = { "EASY": 2, "MOD": 4, "HARD": 6, "VERY_HARD": 10 };
+
+    function getNextTier(current, outcome) {
+      if (outcome === "CORRECT") {
+        if (current === "EASY") return "MOD";
+        if (current === "MOD") return "HARD";
+        return "VERY_HARD";
+      } else if (outcome === "WRONG") {
+        if (current === "VERY_HARD") return "HARD";
+        if (current === "HARD") return "MOD";
+        return "EASY";
+      }
+      return current;
+    }
+
+    // --- BUILD NON-CLICKABLE QUESTION PALETTE (1 - 40) ---
+    function initPalette() {
+      const palette = document.getElementById("paletteGrid");
+      palette.innerHTML = "";
+      for (let i = 1; i <= 40; i++) {
+        const item = document.createElement("div");
+        item.id = `palette-item-${i}`;
+        item.className = `palette-item ${i >= 39 ? 'coding' : ''}`;
+        item.innerText = i >= 39 ? `${i}*` : i;
+        palette.appendChild(item);
+      }
+    }
+
+    function updatePaletteActive() {
+      for (let i = 1; i <= 40; i++) {
+        const item = document.getElementById(`palette-item-${i}`);
+        if (item) {
+          if (i === STATE.qIndex) item.classList.add("active");
+          else item.classList.remove("active");
+        }
+      }
+    }
+
+    // --- QUESTION SELECTOR WITH ANTI-CLUSTERING ---
+    function fetchNextQuestion() {
+      const section = STATE.sections[STATE.currentSectionIdx];
+
+      if (STATE.qIndex === 1 || STATE.qIndex === 11 || STATE.qIndex === 21 || STATE.qIndex === 31) {
+        STATE.currentTier = "MOD";
+      }
+
+      let candidates = QUESTION_BANK.filter(q => 
+        q.topic === section &&
+        q.tier === STATE.currentTier &&
+        !STATE.seenQuestionIds.has(q.id) &&
+        (STATE.previousSubtopic === null || q.subtopic !== STATE.previousSubtopic)
+      );
+
+      if (candidates.length === 0) {
+        candidates = QUESTION_BANK.filter(q => 
+          q.topic === section && 
+          !STATE.seenQuestionIds.has(q.id)
+        );
+      }
+
+      if (candidates.length === 0) {
+        return {
+          id: 9000 + STATE.qIndex,
+          topic: section,
+          subtopic: "General",
+          tier: STATE.currentTier,
+          prompt: `Standard examination question ${STATE.qIndex} for ${STATE.sectionNames[section]}.\n\nIdentify the optimal engineering approach:`,
+          opts: ["Linear Traversal Architecture", "Constant Overhead Paradigm (Optimal)", "Exponential Permutation", "Undefined Memory State"],
+          key: 1
+        };
+      }
+
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    // --- RENDER CANDIDATE INTERFACE ---
+    function renderWorkspace() {
+      updatePaletteActive();
+
+      const secKey = STATE.sections[STATE.currentSectionIdx];
+      document.getElementById("sidebarSection").innerText = STATE.sectionNames[secKey];
+      document.getElementById("sidebarProgress").innerText = `Question ${STATE.qIndex} of 40`;
+      document.getElementById("sidebarSkips").innerText = `${STATE.skipsRemaining} Available`;
+
+      document.getElementById("headerSectionPill").innerText = `SECTION ${STATE.currentSectionIdx + 1}: ${secKey}`;
+      document.getElementById("headerQuestionPill").innerText = `Question ${STATE.qIndex} / 40`;
+
+      const optionsBox = document.getElementById("optionsContainer");
+      const codingBox = document.getElementById("codingContainer");
+      const runBtn = document.getElementById("btnRunCode");
+      const submitBtn = document.getElementById("btnSubmit");
+      const skipBtn = document.getElementById("btnSkip");
+
+      // CASE A: CODING QUESTIONS (Q39 & Q40)
+      if (STATE.qIndex >= 39) {
+        optionsBox.style.display = "none";
+        codingBox.style.display = "flex";
+        runBtn.style.display = "inline-block";
+        submitBtn.innerText = "Submit Code";
+        skipBtn.disabled = true;
+
+        const codeItem = CODING_PROBLEMS[STATE.qIndex];
+        document.getElementById("questionPrompt").innerText = `${codeItem.title}\n\n${codeItem.prompt}`;
+        handleLanguageChange();
+        return;
+      }
+
+      // CASE B: REGULAR MCQS (Q1 - Q38)
+      optionsBox.style.display = "flex";
+      codingBox.style.display = "none";
+      runBtn.style.display = "none";
+      submitBtn.innerText = "Submit Answer";
+      skipBtn.disabled = (STATE.skipsRemaining <= 0);
+
+      STATE.activeQuestion = fetchNextQuestion();
+      STATE.seenQuestionIds.add(STATE.activeQuestion.id);
+      STATE.previousSubtopic = STATE.activeQuestion.subtopic;
+
+      document.getElementById("questionPrompt").innerText = STATE.activeQuestion.prompt;
+      optionsBox.innerHTML = "";
+
+      STATE.activeQuestion.opts.forEach((optText, idx) => {
+        const label = document.createElement("label");
+        label.className = "option-label";
+        label.innerHTML = `
+          <input type="radio" name="candidateAnswer" value="${idx}">
+          <span><strong>${String.fromCharCode(65 + idx)}.</strong> ${optText}</span>
+        `;
+        optionsBox.appendChild(label);
+      });
+    }
+
+    function handleLanguageChange() {
+      const lang = document.getElementById("langSelect").value;
+      const codeItem = CODING_PROBLEMS[STATE.qIndex];
+      if (codeItem) {
+        document.getElementById("codeEditor").value = codeItem.starters[lang] || "";
+        document.getElementById("consolePanel").style.display = "none";
+      }
+    }
+
+    function handleRunCode() {
+      document.getElementById("consolePanel").style.display = "block";
+    }
+
+    // --- ACTION DISPATCHER ---
+    function handleAction(type) {
+      // SKIP: KEEPS PALETTE AND QUESTION INDEX ON CURRENT NUMBER
+      if (type === "SKIP") {
+        if (STATE.skipsRemaining <= 0 || STATE.qIndex >= 39) return;
+        STATE.skipsRemaining--;
+        renderWorkspace();
+        return;
+      }
+
+      // SUBMIT CODE (Q39 & Q40)
+      if (STATE.qIndex >= 39) {
+        if (STATE.qIndex === 39) STATE.totalScore += 60;
+        if (STATE.qIndex === 40) STATE.totalScore += 100;
+        STATE.answersGiven++;
+
+        STATE.qIndex++;
+        if (STATE.qIndex > 40) {
+          finishAssessment();
+          return;
+        }
+        renderWorkspace();
+        return;
+      }
+
+      // SUBMIT MCQ (Q1 - Q38)
+      const selected = document.querySelector('input[name="candidateAnswer"]:checked');
+      if (!selected) {
+        alert("Please select an answer choice before submitting.");
+        return;
+      }
+
+      const answerVal = parseInt(selected.value, 10);
+      const isCorrect = (answerVal === STATE.activeQuestion.key);
+      if (isCorrect) {
+        STATE.totalScore += TIER_POINTS[STATE.currentTier];
+        STATE.currentTier = getNextTier(STATE.currentTier, "CORRECT");
+      } else {
+        STATE.totalScore = Math.max(0, STATE.totalScore - 1);
+        STATE.currentTier = getNextTier(STATE.currentTier, "WRONG");
+      }
+      STATE.answersGiven++;
+
+      STATE.qIndex++;
+      if (STATE.qIndex === 11) STATE.currentSectionIdx = 1;
+      if (STATE.qIndex === 21) STATE.currentSectionIdx = 2;
+      if (STATE.qIndex === 31) STATE.currentSectionIdx = 3;
+
+      if (STATE.qIndex > 40) {
+        finishAssessment();
+        return;
+      }
+
+      renderWorkspace();
+    }
+
+    // --- NOTIFY RECRUITER / COMPANY DISPATCHER ---
+    function notifyCompanyExamStart() {
+      // Dispatches background notification event / POST /api/exam/start webhook
+      console.log(`[COMPANY NOTIFICATION DISPATCHED] Alert: Candidate has initiated their assessment session at ${new Date().toLocaleTimeString()}.`);
+    }
+
+    // --- START EXAM TRANSITION ---
+    function startExam() {
+      // 1. Alert company / recruiter that candidate has started
+      notifyCompanyExamStart();
+
+      // 2. Transition from instructions to active exam
+      document.getElementById("instructionScreen").style.display = "none";
+      document.getElementById("examWorkspace").style.display = "flex";
+
+      initPalette();
+      renderWorkspace();
+
+      // 3. Start 90-minute countdown upon clicking Start Exam
+      let timeLeft = 90 * 60;
+      setInterval(() => {
+        if (timeLeft <= 0) return;
+        timeLeft--;
+        const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const secs = (timeLeft % 60).toString().padStart(2, '0');
+        document.getElementById("timer").innerText = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    // --- FINISH ASSESSMENT (METRICS ONLY) ---
+    function finishAssessment() {
+      document.getElementById("examWorkspace").style.display = "none";
+      document.getElementById("resultsModal").style.display = "flex";
+
+      document.getElementById("finalAnswered").innerText = `${STATE.answersGiven} / 40`;
+      document.getElementById("finalSkipsUsed").innerText = `${10 - STATE.skipsRemaining} / 10`;
+    }
+  </script>
+</body>
+</html>
