@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Tracker | Visitor, Form & Quiz Analytics</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header class="header">
+      <div>
+        <h1>Marketing Tracker</h1>
+        <p>Monitor people who came, filled the form, and attended the quiz.</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-outline btn-sm" onclick="clearAllEntries()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" onclick="openModal()">
+          + Add Entry
+        </button>
+      </div>
+    </header>
+
+    <!-- 3 Big Metric Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card came">
+        <div class="metric-label">1. People Who Came</div>
+        <div class="metric-value" id="countCame">0</div>
+        <div class="metric-sub">Total visitors / clicks</div>
+      </div>
+
+      <div class="metric-card form">
+        <div class="metric-label">2. Filled The Form</div>
+        <div class="metric-value" id="countForm">0</div>
+        <div class="metric-sub" id="subFormPct">0% of visitors</div>
+      </div>
+
+      <div class="metric-card quiz">
+        <div class="metric-label">3. Attended The Quiz</div>
+        <div class="metric-value" id="countQuiz">0</div>
+        <div class="metric-sub" id="subQuizPct">0% of form leads</div>
+      </div>
+    </div>
+
+    <!-- Filter & Controls Bar -->
+    <div class="controls-bar">
+      <!-- Daily / Weekly / Monthly Switcher -->
+      <div class="control-group">
+        <span style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">View:</span>
+        <div class="toggle-group">
+          <button type="button" class="toggle-btn active" data-mode="daily">Daily</button>
+          <button type="button" class="toggle-btn" data-mode="weekly">Week-wise</button>
+          <button type="button" class="toggle-btn" data-mode="monthly">Month-wise</button>
+        </div>
+      </div>
+
+      <!-- Dropdown Filters -->
+      <div class="control-group">
+        <select id="filterSource" class="filter-input" title="Filter by Platform / Source">
+          <option value="all">All Sources</option>
+          <option value="Instagram">Instagram</option>
+          <option value="WhatsApp">WhatsApp</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Facebook">Facebook</option>
+          <option value="Email">Email</option>
+          <option value="Direct">Direct</option>
+        </select>
+
+        <select id="filterDateRange" class="filter-input" title="Filter by Date Range">
+          <option value="all">All Time</option>
+          <option value="today">Today</option>
+          <option value="7days">Last 7 Days</option>
+          <option value="30days">Last 30 Days</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Section 1: Time Breakdown Table -->
+    <div class="section-card">
+      <div class="section-title">
+        <span id="breakdownTitle">Daily Breakdown</span>
+      </div>
+      <table class="simple-table">
+        <thead>
+          <tr>
+            <th>Time Period</th>
+            <th>People Came</th>
+            <th>Filled Form</th>
+            <th>Attended Quiz</th>
+            <th>Form Fill %</th>
+            <th>Overall Quiz %</th>
+          </tr>
+        </thead>
+        <tbody id="breakdownTableBody">
+          <!-- Rendered via app.js -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 2: Individual Entries List -->
+    <div class="section-card">
+      <div class="section-title">
+        <span>People & Submissions</span>
+      </div>
+      <table class="simple-table">
+        <thead>
+          <tr>
+            <th>Name / ID</th>
+            <th>Current Stage</th>
+            <th>Source</th>
+            <th>Date</th>
+            <th>Quick Actions</th>
+          </tr>
+        </thead>
+        <tbody id="entriesTableBody">
+          <!-- Rendered via app.js -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Add Entry Modal Popup -->
+  <div class="modal-overlay" id="entryModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Record Person / Entry</h3>
+        <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+
+      <form id="addEntryForm">
+        <div class="form-group">
+          <label for="entryName">Person Name (Optional)</label>
+          <input type="text" id="entryName" placeholder="e.g. John Doe (or leave blank)">
+        </div>
+
+        <div class="form-group">
+          <label for="entryStage">Stage Status</label>
+          <select id="entryStage">
+            <option value="came">1. Came (Visited only)</option>
+            <option value="form_filled">2. Filled the Form</option>
+            <option value="quiz_attended">3. Attended the Quiz</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="entrySource">Source / Platform</label>
+          <select id="entrySource">
+            <option value="Instagram">Instagram</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Facebook">Facebook</option>
+            <option value="Email">Email</option>
+            <option value="Direct">Direct</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="entryDate">Date</label>
+          <input type="date" id="entryDate">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
