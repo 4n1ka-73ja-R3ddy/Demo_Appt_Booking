@@ -1,9 +1,671 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AppointmentHub | Request an Appointment</title><link rel="stylesheet" href="style.css"></head><body>
-<header class="navbar"><a class="brand" href="index.html"><span class="brand-mark">A</span><span>Appointment<span class="brand-accent">Hub</span></span></a><nav><a class="nav-link active" href="index.html">Request Appointment</a></nav></header>
-<main class="page"><section class="hero"><div><div class="eyebrow">APPOINTMENT REQUEST</div><h1>Choose a time<br><span>that works for you.</span></h1><p class="hero-copy">Select your preferred date, duration and available time. Your selection is a request and is not confirmed until we approve it and payment is completed.</p></div><div class="hero-card"><div class="hero-icon">◷</div><div><strong>Flexible sessions</strong><small>15 or 30 minutes</small></div></div></section>
-<section class="booking-card"><div class="progress"><div class="progress-step active"><span>1</span><div><b>Choose a slot</b><small>Date & duration</small></div></div><div class="progress-line"></div><div class="progress-step"><span>2</span><div><b>Your details</b><small>Submit request</small></div></div></div>
-<div class="section-head"><div><div class="section-kicker">STEP 1</div><h2>Find an available time</h2></div><div id="liveStatus" class="live-status"></div></div>
-<div class="selection-grid"><div class="field-card"><label for="date">PREFERRED DATE</label><div class="input-wrap"><span>▣</span><input id="date" type="date"></div></div><div class="field-card"><label>DURATION</label><div class="duration-group"><button class="duration active" data-duration="15">15 min</button><button class="duration" data-duration="30">30 min</button></div></div></div>
-<div class="slots-head"><div><h3 id="slotTitle">Available time slots</h3><p id="slotSubtitle">Select a date to see available times.</p></div><span class="timezone">Times shown in IST</span></div><div id="slots" class="slot-grid"></div><div id="noSlots" class="empty-state hidden"><div>☕</div><b>No slots available</b><p></p></div>
-<div class="card-footer"><p class="privacy-note">Your request will be reviewed by us. Selecting a slot does not confirm an appointment.</p><button id="continueBtn" class="primary-btn" disabled>Continue <span>→</span></button></div></section><p class="prototype-note">Frontend prototype • Backend, payment, notifications and Google Calendar are integration stages.</p></main>
-<script src="shared.js"></script><script src="booking.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Tracker | Admin & Marketing Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Apply saved theme (or the system setting) before the page draws, so it doesn't flash
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('clean_marketing_theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- ===== Top Bar with Admin / Marketing Portal switch ===== -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="crumb-muted" id="crumbRoot">Admin</span> <span class="crumb-sep">/</span> <span id="topbarTitle">Dashboard</span></div>
+
+      <!-- Search across leads, members, forms and help requests (works on every tab) -->
+      <div class="global-search" id="globalSearchBox">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="globalSearch" placeholder="Search leads, members, forms, help…" autocomplete="off">
+        <div class="global-results" id="globalResults"></div>
+      </div>
+
+      <!-- Marketing Portal only: which member is using the portal (no login in this prototype) -->
+      <div class="signed-in" id="signedInBox" style="display:none">
+        <label for="signedInAs">Signed in as</label>
+        <select id="signedInAs" class="filter-input"></select>
+      </div>
+
+      <button type="button" class="theme-toggle" id="themeToggle" title="Switch light / dark mode">
+        <span class="theme-icon" id="themeIcon">🌙</span><span id="themeLabel">Dark mode</span>
+      </button>
+      <span class="topbar-tag">Admin</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       ADMIN VIEW — full control over team members and all leads
+       ========================================================= -->
+  <div class="container wide" id="adminView">
+   <div class="app-layout">
+
+    <!-- Left sidebar tabs -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">MT</div>
+        <div>
+          <div class="brand-name">Marketing Tracker</div>
+          <div class="brand-sub">Admin Panel</div>
+        </div>
+      </div>
+      <div class="sidebar-label">Main Menu</div>
+      <button type="button" class="nav-btn" data-tab="dashboard">
+        <span class="nav-icon">📊</span><span class="nav-text">Dashboard</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="summary">
+        <span class="nav-icon">🗓️</span><span class="nav-text">Summary</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="team">
+        <span class="nav-icon">🧑‍💼</span><span class="nav-text">Marketing Team</span>
+        <span class="nav-count" id="navCountTeam">0</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="leads">
+        <span class="nav-icon">👥</span><span class="nav-text">All Leads</span>
+        <span class="nav-count" id="navCountLeads">0</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="forms">
+        <span class="nav-icon">📝</span><span class="nav-text">Forms</span>
+        <span class="nav-count" id="navCountForms">0</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="help">
+        <span class="nav-icon">🛟</span><span class="nav-text">Help Requests</span>
+        <span class="nav-count alert" id="navCountHelp">0</span>
+      </button>
+      <div class="sidebar-footer">
+        <div class="brand-logo small">A</div>
+        <div>
+          <div class="brand-name">Admin</div>
+          <div class="brand-sub">Full access</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+    <header class="header">
+      <div>
+        <h1 id="aPageTitle">Admin Dashboard</h1>
+        <p id="aPageSub">Manage your marketing team and monitor every lead across the funnel.</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-primary" id="btnAddMember" onclick="openMemberModal()">+ Add Member</button>
+        <button type="button" class="btn btn-primary" id="btnAddEntry" onclick="openEntryModal('admin')">+ Add Entry</button>
+      </div>
+    </header>
+
+    <!-- ===== Summary (day / week / month) ===== -->
+    <div data-panel="summary">
+      <div class="controls-bar summary-controls">
+        <div class="control-group wrap">
+          <select id="sPeriod" class="filter-input" title="Summary period">
+            <option value="day">Daily Summary</option>
+            <option value="week" selected>Weekly Summary</option>
+            <option value="month">Monthly Summary</option>
+            <option value="all">All Time</option>
+          </select>
+          <div class="period-nav">
+            <button type="button" class="btn btn-outline btn-sm" id="sPrev" title="Previous period">&larr;</button>
+            <input type="date" id="sDate" class="filter-input date-input" title="Pick any day inside the period">
+            <button type="button" class="btn btn-outline btn-sm" id="sNext" title="Next period">&rarr;</button>
+            <button type="button" class="btn btn-outline btn-sm" id="sToday">Today</button>
+          </div>
+        </div>
+        <div class="control-group wrap">
+          <input type="search" id="sSearch" class="search-input small" placeholder="Search member…" autocomplete="off">
+          <select id="sMember" class="filter-input" title="Team member"></select>
+          <button type="button" class="btn btn-outline btn-sm" onclick="exportSummaryCsv()">&#11015; Export</button>
+        </div>
+      </div>
+
+      <div class="summary-period">
+        <div>
+          <div class="summary-kicker" id="sKicker">Weekly Summary</div>
+          <h2 id="sLabel">This week</h2>
+        </div>
+        <div class="muted small" id="sCompare">Compared with the previous week</div>
+      </div>
+
+      <div class="summary-block">
+        <div class="summary-block-title">Lead Funnel <span class="section-hint">by the date the lead came in</span></div>
+        <div class="summary-grid" id="sFunnelCards"></div>
+      </div>
+
+      <div class="summary-block">
+        <div class="summary-block-title">Appointments <span class="section-hint">by the appointment date</span></div>
+        <div class="summary-grid" id="sApptCards"></div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title"><span>By Team Member</span><span class="section-hint" id="sTableHint"></span></div>
+        <div class="table-wrap">
+          <table class="simple-table">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Leads</th>
+                <th>Attended Quiz</th>
+                <th>Qualified</th>
+                <th>Not Qualified</th>
+                <th>Booked</th>
+                <th>Showed Up</th>
+                <th>No-show</th>
+                <th>Cancelled</th>
+                <th>Show-up Rate</th>
+              </tr>
+            </thead>
+            <tbody id="sTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-grid four" data-panel="dashboard">
+      <div class="metric-card team">
+        <div class="metric-label">Team Members</div>
+        <div class="metric-value" id="aCountMembers">0</div>
+        <div class="metric-sub" id="aSubMembers">0 active</div>
+      </div>
+      <div class="metric-card came">
+        <div class="metric-label">1. Leads</div>
+        <div class="metric-value" id="aCountCame">0</div>
+        <div class="metric-sub" id="aSubUnassigned">Clicked the link</div>
+      </div>
+      <div class="metric-card form">
+        <div class="metric-label">2. Attended The Quiz</div>
+        <div class="metric-value" id="aCountForm">0</div>
+        <div class="metric-sub" id="aSubFormPct">0% of leads</div>
+      </div>
+      <div class="metric-card quiz">
+        <div class="metric-label">3. Qualified &amp; Booked</div>
+        <div class="metric-value" id="aCountQuiz">0</div>
+        <div class="metric-sub" id="aSubQuizPct">0% of quiz takers</div>
+      </div>
+    </div>
+
+    <div class="controls-bar" id="aControls">
+      <input type="search" id="aSearch" class="search-input" placeholder="Search…" autocomplete="off">
+      <div class="control-group wrap">
+        <select id="aFilterMember" class="filter-input" title="Filter by Team Member"></select>
+        <select id="aFilterForm" class="filter-input" title="Filter by Form"></select>
+        <!-- Marketing Team tab only -->
+        <select id="tFilterStatus" class="filter-input team-only" title="Member status">
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <select id="tFilterTarget" class="filter-input team-only" title="Progress against this month's target">
+          <option value="all">All Target Progress</option>
+          <option value="met">Target Met</option>
+          <option value="ontrack">On Track</option>
+          <option value="behind">Behind Target</option>
+          <option value="none">No Target Set</option>
+        </select>
+        <select id="tSortBy" class="filter-input team-only" title="Sort members">
+          <option value="name">Sort: Name (A–Z)</option>
+          <option value="leads">Sort: Most Leads</option>
+          <option value="booked">Sort: Most Booked</option>
+          <option value="conversion">Sort: Best Conversion</option>
+          <option value="target">Sort: Target Progress</option>
+        </select>
+        <select id="aFilterAppt" class="filter-input" title="Appointment status">
+          <option value="all">All Appointments</option>
+          <option value="Scheduled">Scheduled</option>
+          <option value="Completed">Showed Up</option>
+          <option value="No-show">No-show</option>
+          <option value="Cancelled">Cancelled</option>
+          <option value="none">Not Booked</option>
+        </select>
+        <select id="aFilterView" class="filter-input" title="Breakdown View">
+          <option value="daily">Daily View</option>
+          <option value="weekly">Week-wise View</option>
+          <option value="monthly">Month-wise View</option>
+        </select>
+        <select id="aFilterDateRange" class="filter-input" title="Filter by Date Range">
+          <option value="all">All Time</option>
+          <option value="today">Today</option>
+          <option value="7days" selected>Last 7 Days</option>
+          <option value="30days">Last 30 Days</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Team management -->
+    <div class="section-card" data-panel="team">
+      <div class="section-title">
+        <span>Marketing Team</span>
+        <span class="section-hint" id="tTeamHint">Lead counts follow the date filter</span>
+      </div>
+      <div class="table-wrap">
+        <table class="simple-table">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Contact</th>
+              <th>Status</th>
+              <th>Leads</th>
+              <th>Quiz</th>
+              <th>Booked</th>
+              <th>Conversion</th>
+              <th>This Month / Target</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="aTeamTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-card" data-panel="dashboard">
+      <div class="section-title"><span id="aBreakdownTitle">Daily Breakdown</span><span class="section-hint">Scroll inside the table for more</span></div>
+      <div class="table-wrap scroll-box">
+        <table class="simple-table">
+          <thead>
+            <tr>
+              <th>Time Period</th>
+              <th>Leads</th>
+              <th>Attended Quiz</th>
+              <th>Qualified &amp; Booked</th>
+              <th>Quiz Rate</th>
+              <th>Booking Rate</th>
+            </tr>
+          </thead>
+          <tbody id="aBreakdownTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-card" data-panel="leads">
+      <div class="section-title">
+        <span>All Leads <span class="section-hint" id="aLeadsCount"></span></span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="exportLeadsCsv()">⬇ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table class="simple-table">
+          <thead>
+            <tr>
+              <th>Name / Lead Date</th>
+              <th>Current Stage</th>
+              <th>Assigned To</th>
+              <th>Appointment</th>
+              <th>Quick Actions</th>
+              <th class="col-delete">Delete</th>
+            </tr>
+          </thead>
+          <tbody id="aEntriesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- ===== Forms (list + detail, built by app.js) ===== -->
+    <div data-panel="forms" id="formsPanel"></div>
+    <!-- ===== Help requests raised by members (built by app.js) ===== -->
+    <div data-panel="help" id="helpPanel"></div>
+    </main>
+   </div>
+  </div>
+
+  <!-- =========================================================
+       MARKETING PORTAL — one member's own view only
+       ========================================================= -->
+  <div class="container" id="portalView" style="display:none">
+
+    <div class="section-card empty-box" id="portalEmpty">
+      <span>🔒</span>
+      No marketing members exist yet.<br>
+      <small>Switch to <strong>Admin</strong> and click <strong>"+ Add Member"</strong> to create a portal account.</small>
+    </div>
+
+    <div id="portalBody">
+      <header class="header">
+        <div>
+          <h1 id="pWelcome">My Marketing Portal</h1>
+          <p>Your own leads and progress. Other members' details stay private.</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn btn-primary" onclick="openEntryModal('portal')">+ Add Lead</button>
+        </div>
+      </header>
+
+      <div class="metrics-grid four">
+        <div class="metric-card came">
+          <div class="metric-label">My Leads</div>
+          <div class="metric-value" id="pCountCame">0</div>
+          <div class="metric-sub">Clicked your link</div>
+        </div>
+        <div class="metric-card form">
+          <div class="metric-label">My Quiz Attended</div>
+          <div class="metric-value" id="pCountForm">0</div>
+          <div class="metric-sub" id="pSubFormPct">0% of leads</div>
+        </div>
+        <div class="metric-card quiz">
+          <div class="metric-label">My Qualified &amp; Booked</div>
+          <div class="metric-value" id="pCountQuiz">0</div>
+          <div class="metric-sub" id="pSubQuizPct">0% of quiz takers</div>
+        </div>
+        <div class="metric-card team">
+          <div class="metric-label">Monthly Target</div>
+          <div class="metric-value" id="pTargetValue">0</div>
+          <div class="progress"><div class="progress-bar" id="pTargetBar"></div></div>
+          <div class="metric-sub" id="pTargetSub">No target set by admin</div>
+        </div>
+      </div>
+
+      <div class="controls-bar">
+        <span class="control-label">Filters:</span>
+        <div class="control-group wrap">
+          <select id="pFilterView" class="filter-input" title="Breakdown View">
+            <option value="daily">Daily View</option>
+            <option value="weekly">Week-wise View</option>
+            <option value="monthly">Month-wise View</option>
+          </select>
+          <select id="pFilterDateRange" class="filter-input" title="Filter by Date Range">
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="7days" selected>Last 7 Days</option>
+            <option value="30days">Last 30 Days</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Anonymous comparison: no other member names or contact details -->
+        <div class="section-card">
+          <div class="section-title"><span>How I Compare</span><span class="section-hint">Anonymous team stats</span></div>
+          <div class="compare-grid">
+            <div class="compare-item">
+              <div class="compare-label">My Rank</div>
+              <div class="compare-value" id="pRank">–</div>
+              <div class="metric-sub" id="pRankSub">by bookings</div>
+            </div>
+            <div class="compare-item">
+              <div class="compare-label">My Conversion</div>
+              <div class="compare-value" id="pMyConv">0%</div>
+              <div class="metric-sub">lead → booked</div>
+            </div>
+            <div class="compare-item">
+              <div class="compare-label">Team Average</div>
+              <div class="compare-value" id="pTeamConv">0%</div>
+              <div class="metric-sub">lead → booked</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title"><span>My Profile</span></div>
+          <div class="profile-list" id="pProfile"></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title"><span id="pBreakdownTitle">Daily Breakdown</span></div>
+        <div class="table-wrap">
+          <table class="simple-table">
+            <thead>
+              <tr>
+                <th>Time Period</th>
+                <th>Leads</th>
+                <th>Attended Quiz</th>
+                <th>Qualified &amp; Booked</th>
+                <th>Quiz Rate</th>
+                <th>Booking Rate</th>
+              </tr>
+            </thead>
+            <tbody id="pBreakdownTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">
+          <span>My Leads</span>
+          <input type="search" id="pSearch" class="search-input small" placeholder="Search my leads…" autocomplete="off">
+        </div>
+        <div class="table-wrap">
+          <table class="simple-table">
+            <thead>
+              <tr>
+                <th>Name / ID</th>
+                <th>Current Stage</th>
+                <th>Lead Date</th>
+                <th>Appointment</th>
+                <th>Quick Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pEntriesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Help & Support: members raise problems here; they appear in Admin → Help Requests -->
+      <div class="section-card" id="pHelp">
+        <div class="section-title">
+          <span>Help &amp; Support</span>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openHelpModal()">+ Raise a Problem</button>
+        </div>
+        <div id="pTickets"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Add Entry / Lead Modal ===== -->
+  <div class="modal-overlay" id="entryModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="entryModalTitle">Record Person / Entry</h3>
+        <button type="button" class="close-btn" onclick="closeModal('entryModal')">&times;</button>
+      </div>
+      <form id="addEntryForm">
+        <div class="form-group">
+          <label for="entryName">Person Name (Optional)</label>
+          <input type="text" id="entryName" placeholder="e.g. John Doe (or leave blank)">
+        </div>
+        <div class="form-group">
+          <label for="entryForm">Form (Quiz Link Clicked)</label>
+          <select id="entryForm"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="entryContact">Contact Number</label>
+            <input type="tel" id="entryContact" placeholder="Phone number">
+          </div>
+          <div class="form-group">
+            <label for="entryEmail">Email Address</label>
+            <input type="email" id="entryEmail" placeholder="Email address">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="entryStage">Stage Status</label>
+          <select id="entryStage">
+            <option value="came">1. Lead (clicked the link)</option>
+            <option value="attended">2. Attended the Quiz</option>
+          </select>
+        </div>
+        <div class="form-group" id="entryAssignGroup">
+          <label for="entryAssign">Assign To Member</label>
+          <select id="entryAssign"></select>
+        </div>
+        <div class="form-group">
+          <label for="entryDate">Date</label>
+          <input type="date" id="entryDate">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('entryModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Add / Edit Member Modal (Admin only) ===== -->
+  <div class="modal-overlay" id="memberModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="memberModalTitle">Add Marketing Member</h3>
+        <button type="button" class="close-btn" onclick="closeModal('memberModal')">&times;</button>
+      </div>
+      <form id="memberForm">
+        <div class="form-group">
+          <label for="memberName">Full Name *</label>
+          <input type="text" id="memberName" placeholder="e.g. Priya Sharma" required>
+        </div>
+        <div class="form-group">
+          <label for="memberEmail">Email</label>
+          <input type="email" id="memberEmail" placeholder="name@example.com">
+        </div>
+        <div class="form-group">
+          <label for="memberPhone">Phone</label>
+          <input type="tel" id="memberPhone" placeholder="e.g. 98765 43210">
+        </div>
+        <div class="form-group">
+          <label for="memberTarget">Monthly Lead Target</label>
+          <input type="number" id="memberTarget" min="0" step="1" placeholder="e.g. 50 (0 = no target)">
+        </div>
+        <p class="form-error" id="memberError"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('memberModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Lead Details Drawer (opens when a lead is clicked) ===== -->
+  <div class="drawer-overlay" id="leadDrawer">
+    <aside class="drawer" role="dialog" aria-labelledby="drawerName">
+      <div class="drawer-header">
+        <div>
+          <div class="drawer-kicker">Lead Details</div>
+          <h3 id="drawerName">Lead</h3>
+          <div id="drawerSub" class="muted"></div>
+        </div>
+        <button type="button" class="close-btn" onclick="closeLeadDrawer()">&times;</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-footer" id="drawerFooter"></div>
+    </aside>
+  </div>
+
+  <!-- ===== Raise a Problem Modal (Marketing Portal only) ===== -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Raise a Problem</h3>
+        <button type="button" class="close-btn" onclick="closeModal('helpModal')">&times;</button>
+      </div>
+      <form id="helpForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="helpCategory">Category</label>
+            <select id="helpCategory">
+              <option>Leads</option>
+              <option>Appointments</option>
+              <option>Forms &amp; Quiz</option>
+              <option>Targets</option>
+              <option>Login / Access</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="helpPriority">Priority</label>
+            <select id="helpPriority">
+              <option>Low</option>
+              <option selected>Medium</option>
+              <option>High</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="helpSubject">Subject *</label>
+          <input type="text" id="helpSubject" placeholder="Short summary of the problem" required maxlength="120">
+        </div>
+        <div class="form-group">
+          <label for="helpDescription">Describe the problem *</label>
+          <textarea id="helpDescription" rows="4" placeholder="What happened? Which lead or form?" required></textarea>
+        </div>
+        <p class="form-error" id="helpError"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('helpModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Confirmation Modal (used before deleting) ===== -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-box confirm-box">
+      <div class="confirm-icon">!</div>
+      <h3 id="confirmTitle">Delete this lead?</h3>
+      <p id="confirmMessage" class="confirm-message"></p>
+      <div class="modal-actions center">
+        <button type="button" class="btn btn-outline" onclick="closeModal('confirmModal')">Cancel</button>
+        <button type="button" class="btn btn-danger-solid" id="confirmYesBtn">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Appointment Modal ===== -->
+  <div class="modal-overlay" id="apptModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="apptModalTitle">Book Appointment</h3>
+        <button type="button" class="close-btn" onclick="closeModal('apptModal')">&times;</button>
+      </div>
+      <p class="muted appt-lead-name" id="apptLeadName"></p>
+      <form id="apptForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="apptDate">Date *</label>
+            <input type="date" id="apptDate" required>
+          </div>
+          <div class="form-group">
+            <label for="apptTime">Time *</label>
+            <input type="time" id="apptTime" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="apptMode">Mode</label>
+            <select id="apptMode">
+              <option value="Online">Online</option>
+              <option value="In-person">In-person</option>
+              <option value="Phone">Phone</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="apptStatus">Status</label>
+            <select id="apptStatus">
+              <option value="Scheduled">Scheduled</option>
+              <option value="Completed">Showed up</option>
+              <option value="No-show">No-show</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="apptNotes">Notes</label>
+          <input type="text" id="apptNotes" placeholder="e.g. Wants weekend batch">
+        </div>
+        <div class="modal-actions spread">
+          <button type="button" class="btn btn-danger" id="apptRemoveBtn" onclick="removeAppointment()">Remove Appointment</button>
+          <div class="modal-actions-right">
+            <button type="button" class="btn btn-outline" onclick="closeModal('apptModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
