@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Forms Studio</title>
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --surface: #ffffff;
+      --surface-subtle: #f3f4f6;
+      --border: #e5e7eb;
+      --border-dark: #d1d5db;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --primary: #1f2937;
+      --accent-blue: #2563eb;
+      --accent-blue-hover: #1d4ed8;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 6px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13.5px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      height: 56px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    main {
+      max-width: 1040px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.4px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      color: #ffffff;
+      border-color: var(--accent-blue);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-blue-hover);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      border-color: var(--border-dark);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-subtle);
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+
+    /* Dashboard Squares with Bent Corners */
+    .forms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 20px;
+    }
+
+    .form-square-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 20px;
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .form-square-card:hover {
+      border-color: var(--accent-blue);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--surface-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .badge-published {
+      background: #f0fdf4;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .action-cell {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      position: relative;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .icon-btn:hover {
+      background: var(--surface-subtle);
+      color: var(--text);
+    }
+
+    .menu-popover {
+      position: absolute;
+      top: 34px;
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: var(--shadow-md);
+      width: 160px;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      padding: 4px 0;
+    }
+
+    .menu-popover.open {
+      display: flex;
+    }
+
+    .menu-item {
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--text);
+      background: transparent;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      width: 100%;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu-item:hover {
+      background: var(--surface-subtle);
+    }
+
+    .menu-item.danger-item {
+      color: var(--danger);
+    }
+
+    .menu-item.danger-item:hover {
+      background: var(--danger-bg);
+    }
+
+    /* Builder Navigation */
+    .builder-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .builder-tabs {
+      display: flex;
+      gap: 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .builder-tab {
+      padding-bottom: 10px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .builder-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+    .builder-panel {
+      display: none;
+    }
+
+    .builder-panel.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+
+    .card-head {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-content {
+      padding: 18px;
+    }
+
+    /* Toggle Switch */
+    .switch-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .2s;
+      border-radius: 20px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent-blue);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(16px);
+    }
+
+    /* Question Row */
+    .question-row {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      margin-bottom: 10px;
+    }
+
+    .field-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: inline-block;
+      margin-bottom: 3px;
+    }
+
+    /* Options List in Modal */
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 8px 0 12px 0;
+    }
+
+    .option-item {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* Form Fields */
+    label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    input[type="text"], input[type="email"], input[type="tel"], select, textarea {
+      width: 100%;
+      padding: 8px 11px;
+      font-size: 13px;
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 1px var(--accent-blue);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    /* Routing Overview & Builder Styles */
+    .route-item-card {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    .route-item-card:last-child {
+      border-bottom: none;
+    }
+
+    .route-num {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+      min-width: 14px;
+    }
+
+    .route-grip {
+      color: var(--text-muted);
+      cursor: grab;
+      font-size: 16px;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .route-destination-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--border);
+      border-left: 3.5px solid #8b5cf6;
+      border-radius: 6px;
+      padding: 12px 14px;
+      background: #ffffff;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .avatar-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #e0e7ff;
+      color: #3730a3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* Centered Flow Timeline & Light Red Badges */
+    .logic-container-view {
+      position: relative;
+      padding-left: 0;
+      padding-bottom: 30px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .logic-rail {
+      display: none;
+    }
+
+    .logic-branch-node {
+      position: relative;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logic-branch-node .logic-box {
+      width: 100%;
+    }
+
+    .logic-branch-node::before {
+      content: '';
+      display: block;
+      width: 2px;
+      height: 18px;
+      background: #fecaca;
+      margin-bottom: 8px;
+    }
+
+    .logic-branch-node:first-child::before {
+      display: none;
+    }
+
+    .rail-badge {
+      position: static;
+      margin: 0 auto 10px auto;
+      width: fit-content;
+      min-width: 52px;
+      height: 24px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #ef4444;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 1px 2px rgba(239, 68, 68, 0.08);
+    }
+
+    .rail-badge-lg {
+      min-width: 68px;
+    }
+
+    .logic-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .logic-box-head {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logic-box-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .logic-box-body {
+      padding: 0 18px 18px 18px;
+    }
+
+    .logic-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .operator-select {
+      max-width: 170px;
+    }
+
+    .value-select {
+      flex: 1;
+    }
+
+    .or-badge {
+      min-width: 48px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #ef4444;
+      font-size: 10.5px;
+      font-weight: 700;
+      border-radius: 4px;
+    }
+
+    .btn-pill-action {
+      background: #ffffff;
+      border: 1px solid var(--border-dark);
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text);
+    }
+
+    .btn-pill-action:hover {
+      background: var(--surface-subtle);
+    }
+
+    .trash-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 6px;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .trash-btn:hover {
+      color: var(--danger);
+    }
+
+    .info-circle {
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .add-question-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 10px 0 20px 0;
+    }
+
+    .add-question-wrapper::before,
+    .add-question-wrapper::after {
+      content: '';
+      display: block;
+      width: 2px;
+      height: 16px;
+      background: #fecaca;
+    }
+
+    .btn-add-question-rail {
+      background: #ffffff;
+      border: 1px solid #fca5a5;
+      color: #dc2626;
+      padding: 7px 18px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 6px 0;
+    }
+
+    .btn-add-question-rail:hover {
+      background: #fef2f2;
+    }
+
+    .logic-footer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+      padding-top: 16px;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      width: 100%;
+      max-width: 580px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .creation-choice-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--surface);
+    }
+
+    .creation-choice-card:hover {
+      border-color: var(--accent-blue);
+      background: var(--surface-subtle);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #111827;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">
+      <span>Smart Forms</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- ==========================================
+         VIEW 1: FRONT PAGE (SQUARES WITH BENT CORNERS)
+         ========================================== -->
+    <section id="view-dashboard" class="view-section active">
+      <div class="page-header">
+        <h1 class="page-title">Smart Forms</h1>
+        <button class="btn btn-primary" onclick="openCreateFormModal()">+ New smart form</button>
+      </div>
+
+      <div class="forms-grid" id="forms-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 2: FORM BUILDER & LOGIC
+         ========================================== -->
+    <section id="view-builder" class="view-section">
+      <div class="builder-nav-bar">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button class="btn btn-secondary btn-sm" onclick="showDashboard()">&larr; Back to forms</button>
+          <span style="color: var(--border-dark);">|</span>
+          <div>
+            <h2 id="builder-form-title" style="font-size: 16px; font-weight: 600;">Untitled Smart Form</h2>
+            <div style="font-size: 11.5px; color: var(--text-muted);" id="builder-form-subtitle">Last edited today by You.</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" onclick="simulateRespondentModal()">Preview</button>
+          <button class="btn btn-primary btn-sm" onclick="saveFormStudio()">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="builder-tabs">
+        <div class="builder-tab active" id="tab-form" onclick="switchBuilderTab('form')">Form</div>
+        <div class="builder-tab" id="tab-logic" onclick="switchBuilderTab('logic')">Logic</div>
+        <div class="builder-tab" id="tab-responses" onclick="switchBuilderTab('responses')">Responses</div>
+      </div>
+
+      <!-- TAB PANEL 1: FORM -->
+      <div id="panel-form" class="builder-panel active">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <h3 style="font-size: 15px; font-weight: 600;">Form</h3>
+            <p style="font-size: 12.5px; color: var(--text-muted);">Responses to these questions will be used in the routing logic.</p>
+          </div>
+          <div class="switch-wrapper">
+            <span style="font-size: 12.5px; color: var(--text);">Include headline and description</span>
+            <label class="switch">
+              <input type="checkbox" id="toggle-headline-desc" onchange="toggleHeadlineDescription(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Headline & Description Card with Individual Delete and Restore Buttons -->
+        <div id="headline-description-card" class="card" style="display: none;">
+          <div class="card-head">
+            <span style="font-weight: 600; font-size: 13px;">Headline &amp; Description</span>
+          </div>
+          <div class="card-content">
+            <!-- Headline Field Box -->
+            <div id="headline-box" class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="margin-bottom: 0;">Headline</label>
+                <button class="trash-btn" type="button" onclick="deleteHeadlineBox()" title="Delete headline">🗑</button>
+              </div>
+              <input type="text" id="input-headline" placeholder="Enter headline" oninput="updateHeadline(this.value)">
+            </div>
+            <!-- Add Headline Button (Shown when deleted) -->
+            <div id="add-headline-btn-wrap" style="display: none; margin-bottom: 14px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="restoreHeadlineBox()">+ Add headline</button>
+            </div>
+
+            <!-- Description Field Box -->
+            <div id="description-box" class="form-group" style="margin-bottom: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="margin-bottom: 0;">Description</label>
+                <button class="trash-btn" type="button" onclick="deleteDescriptionBox()" title="Delete description">🗑</button>
+              </div>
+              <textarea id="input-description" rows="2" placeholder="Enter description" oninput="updateDescription(this.value)"></textarea>
+            </div>
+            <!-- Add Description Button (Shown when deleted) -->
+            <div id="add-description-btn-wrap" style="display: none; margin-top: 10px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="restoreDescriptionBox()">+ Add description</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Questions Section with Non-Editable Baseline Fields -->
+        <div class="card">
+          <div class="card-head">
+            <span style="font-weight: 600; font-size: 13px;">Questions</span>
+            <button class="btn btn-secondary btn-sm" onclick="openAddQuestionModal()">+ Add Question</button>
+          </div>
+          <div class="card-content">
+            <div class="form-group">
+              <label>Name <span style="color: var(--danger);">*</span></label>
+              <input type="text" placeholder="Short answer text" disabled style="background: var(--surface-subtle); cursor: not-allowed; color: var(--text-muted);">
+            </div>
+
+            <div class="form-group">
+              <label>Contact number <span style="color: var(--danger);">*</span></label>
+              <input type="tel" placeholder="Phone number" disabled style="background: var(--surface-subtle); cursor: not-allowed; color: var(--text-muted);">
+            </div>
+
+            <div class="form-group">
+              <label>Email address <span style="color: var(--danger);">*</span></label>
+              <input type="email" placeholder="Email address" disabled style="background: var(--surface-subtle); cursor: not-allowed; color: var(--text-muted);">
+            </div>
+
+            <div id="questions-list-container"></div>
+          </div>
+        </div>
+
+        <!-- End of Form Buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+          <button class="btn btn-secondary" id="btn-schedule-meeting" type="button" onclick="simulateRespondentModal()">Schedule meeting</button>
+          <button class="btn btn-primary" id="btn-form-next" onclick="switchBuilderTab('logic')">Next &rarr;</button>
+        </div>
+      </div>
+
+      <!-- TAB PANEL 2: LOGIC -->
+      <div id="panel-logic" class="builder-panel">
+        
+        <!-- SUBVIEW A: ROUTES OVERVIEW -->
+        <div id="logic-routes-overview">
+          <div style="margin-bottom: 18px;">
+            <h3 style="font-size: 16px; font-weight: 600;">Logic</h3>
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
+              Add routes to start sending people to the right destination. Remember, routes run in order!
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <span style="font-weight: 600; font-size: 14px;">Routes</span>
+              <button class="btn btn-secondary btn-sm" onclick="openRouteBuilder()">&plus; Create</button>
+            </div>
+
+            <div id="active-routes-container">
+              <!-- Injected dynamically based on actual configured logic -->
+            </div>
+
+            <!-- Fallback Route -->
+            <div class="route-item-card" style="background: #fafafa;">
+              <div style="flex: 1; padding-left: 30px;">
+                <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 8px;">
+                  In all other cases route to
+                </div>
+                <div style="border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; background: #ffffff; max-width: 380px;">
+                  <div style="font-weight: 600; font-size: 13px;">Book a 15 mins call with me</div>
+                  <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                    Use the link: <a href="https://topmate.io/ajayyadav" target="_blank" style="color: var(--accent-blue); text-decoration: none;">https://topmate.io/ajayyadav</a>
+                  </div>
+                </div>
+              </div>
+              <div class="action-cell">
+                <button class="icon-btn" title="Options">&vellip;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBVIEW B: ROUTE BUILDER & DESTINATION -->
+        <div id="logic-route-builder" style="display: none;">
+          <div style="margin-bottom: 20px;">
+            <a href="javascript:void(0)" onclick="handleBackFromRouteBuilder()" style="font-size: 12.5px; color: var(--accent-blue); text-decoration: none; font-weight: 500;">&lsaquo; Back to routing</a>
+            <h2 style="font-size: 18px; font-weight: 600; margin-top: 4px;">Add a route</h2>
+          </div>
+
+          <div class="logic-container-view">
+            <div id="logic-nodes-list">
+              <div class="logic-branch-node" data-node-type="IF">
+                <div class="rail-badge">IF</div>
+
+                <div class="logic-box">
+                  <div class="logic-box-head">
+                    <span class="logic-box-title">the form follows this condition</span>
+                    <span class="info-circle" title="Information">ⓘ</span>
+                  </div>
+                  <div class="logic-box-body">
+                    <select class="logic-q-select" onchange="handleLogicQuestionChange(this)">
+                      <option value="">Choose a question</option>
+                    </select>
+
+                    <div class="logic-conditions-list">
+                      <div class="logic-row">
+                        <select class="operator-select" style="background: #f1f5f9;">
+                          <option value="is">is</option>
+                          <option value="is_not">is not</option>
+                        </select>
+                        <select class="value-select" style="background: #f1f5f9;">
+                          <option value="">Select option</option>
+                        </select>
+                        <button class="btn-pill-action" type="button" onclick="addOrRow(this)">+ or</button>
+                        <button class="trash-btn" type="button" onclick="removeLogicRowOrNode(this)" title="Delete">🗑</button>
+                      </div>
+                    </div>
+
+                    <div style="margin-top: 14px;">
+                      <button class="btn-pill-action" type="button" onclick="addAndBlock(this)">+ and</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="add-question-wrapper">
+              <button class="btn-add-question-rail" type="button" onclick="addOrIfBlock()">+ Add another question</button>
+            </div>
+
+            <!-- THEN Block -->
+            <div class="logic-branch-node" id="node-then">
+              <div class="rail-badge">THEN</div>
+
+              <div class="logic-box">
+                <div class="logic-box-head">
+                  <span class="logic-box-title">go to a destination</span>
+                  <span class="info-circle" title="Information">ⓘ</span>
+                </div>
+                <div class="logic-box-body">
+                  <div style="display: flex; gap: 16px; align-items: flex-start;">
+                    <div style="width: 230px; flex-shrink: 0;">
+                      <label style="color: var(--text-muted); font-size: 12px; font-weight: 500; margin-bottom: 6px;">Destination</label>
+                      <select id="logic-destination-type" onchange="handleDestinationTypeChange(this.value)">
+                        <option value="event" selected>An event type</option>
+                        <option value="message">A custom message</option>
+                        <option value="url">An external URL</option>
+                      </select>
+                    </div>
+
+                    <div style="flex: 1;" id="dest-type-event-wrap">
+                      <label style="color: var(--text-muted); font-size: 12px; font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                        Event Type <span class="info-circle" style="font-size: 12px;">ⓘ</span>
+                      </label>
+                      <div style="position: relative; display: flex; align-items: center;">
+                        <select id="logic-event-type-select" style="padding-left: 28px; padding-right: 50px; cursor: pointer;">
+                          <option value="Exploratory Call with Ajay Yadava" selected>Exploratory Call with Ajay Yadava</option>
+                          <option value="15 Mins One-on-One Mentorship">15 Mins One-on-One Mentorship</option>
+                          <option value="Rehabilitation Intake with Mansi">Rehabilitation Intake with Mansi</option>
+                          <option value="General Technical Screening">General Technical Screening</option>
+                        </select>
+                        <span style="position: absolute; left: 11px; width: 8px; height: 8px; border-radius: 50%; background: #7c3aed; pointer-events: none;"></span>
+                        <div class="avatar-circle" style="position: absolute; right: 28px; width: 22px; height: 22px; pointer-events: none;">A</div>
+                      </div>
+                    </div>
+
+                    <div style="flex: 1; display: none;" id="dest-type-message-wrap">
+                      <label style="color: var(--text-muted); font-size: 12px; font-weight: 500; margin-bottom: 6px;">
+                        Custom Message
+                      </label>
+                      <input type="text" id="logic-custom-message-input" placeholder="We'll email you within 24 hours." value="We'll email you within 24 hours.">
+                    </div>
+
+                    <div style="flex: 1; display: none;" id="dest-type-url-wrap">
+                      <label style="color: var(--text-muted); font-size: 12px; font-weight: 500; margin-bottom: 6px;">
+                        External URL
+                      </label>
+                      <input type="text" id="logic-external-url-input" placeholder="https://example.com/pricing">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="logic-footer-actions">
+              <button class="btn btn-secondary" onclick="handleBackFromRouteBuilder()">Cancel</button>
+              <button class="btn btn-primary" onclick="saveLogicRoute()">Save</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB PANEL 3: RESPONSES -->
+      <div id="panel-responses" class="builder-panel">
+        <div class="card">
+          <div class="card-head">
+            <span style="font-weight: 600; font-size: 13px;">Logged Responses</span>
+            <button class="btn btn-secondary btn-sm" onclick="exportCurrentResponses()">Export CSV</button>
+          </div>
+          <div class="card-content" style="padding: 0;">
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Contact</th>
+                  <th>Answers Summary</th>
+                  <th>Routed To</th>
+                </tr>
+              </thead>
+              <tbody id="responses-table-body">
+                <!-- Logged rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==========================================
+       MODAL: FORM SQUARE CLICK OPTIONS MENU
+       ========================================== -->
+  <div class="modal-overlay" id="modal-card-options">
+    <div class="modal" style="max-width: 380px;">
+      <div class="modal-header">
+        <span class="modal-title" id="options-modal-title">Form Options</span>
+        <button class="icon-btn" onclick="closeModal('modal-card-options')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 4px;">
+        <button class="menu-item" onclick="handleCardAction('edit')">✏️ Edit form</button>
+        <button class="menu-item" onclick="handleCardAction('share')">🔗 Share</button>
+        <button class="menu-item" onclick="handleCardAction('rename')">🏷️ Rename form</button>
+        <button class="menu-item" onclick="handleCardAction('clone')">📋 Clone form</button>
+        <button class="menu-item" onclick="handleCardAction('export')">📊 Export results</button>
+        <button class="menu-item" onclick="handleCardAction('responses')">💬 Responses</button>
+        <div style="border-top: 1px solid var(--border); margin: 4px 0;"></div>
+        <button class="menu-item danger-item" onclick="handleCardAction('delete')">🗑️ Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 1: NEW SMART FORM
+       ========================================== -->
+  <div class="modal-overlay" id="modal-create-form">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="create-modal-header-title">Create a new smart form</span>
+        <button class="icon-btn" onclick="closeModal('modal-create-form')">&times;</button>
+      </div>
+      
+      <div class="modal-body" id="create-modal-step-1">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          How would you like to begin setting up your smart form?
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="creation-choice-card" onclick="selectCreationPath('scratch')">
+            <div style="font-size: 26px; margin-bottom: 8px;">➕</div>
+            <div style="font-weight: 600; font-size: 13.5px; margin-bottom: 4px;">Create a new form</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Start from scratch and build your form.</div>
+          </div>
+          <div class="creation-choice-card" onclick="selectCreationPath('import')">
+            <div style="font-size: 26px; margin-bottom: 8px;">📥</div>
+            <div style="font-weight: 600; font-size: 13.5px; margin-bottom: 4px;">Import an existing form</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Import from a file or existing template.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-body" id="create-modal-step-2" style="display: none;">
+        <div class="form-group">
+          <label id="lbl-form-name">Name your smart form</label>
+          <input type="text" id="input-form-name" placeholder="e.g. Client Intake Assessment">
+        </div>
+        <div id="import-details-box" style="display: none; background: var(--surface-subtle); padding: 12px; border-radius: 6px; font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
+          Import format: Pre-configured schema with default questions and routing template.
+        </div>
+      </div>
+
+      <div class="modal-footer" id="create-modal-footer-1">
+        <button class="btn btn-secondary" onclick="closeModal('modal-create-form')">Cancel</button>
+      </div>
+
+      <div class="modal-footer" id="create-modal-footer-2" style="display: none;">
+        <button class="btn btn-secondary" onclick="backToStep1()">Back</button>
+        <button class="btn btn-primary" onclick="submitCreateForm()">Create form</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: ADD / EDIT QUESTION
+       ========================================== -->
+  <div class="modal-overlay" id="modal-add-question">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="question-modal-title">Add question</span>
+        <button class="icon-btn" onclick="closeModal('modal-add-question')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Question type</label>
+          <select id="input-q-type" onchange="handleQuestionTypeChange(this.value)">
+            <option value="dropdown">Dropdown</option>
+            <option value="radio">Radio button</option>
+            <option value="short">Short answer</option>
+            <option value="paragraph">Paragraph</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Question</label>
+          <input type="text" id="input-q-label" placeholder="Enter your question">
+        </div>
+
+        <div class="form-group" id="question-options-group">
+          <label>Answer Choices</label>
+          <div class="options-list" id="modal-options-list">
+            <!-- Choice rows dynamically appended with delete buttons -->
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="appendOptionRow()">+ Add Choice</button>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+            <input type="checkbox" id="input-q-mandatory" checked>
+            <span>This question is mandatory</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-add-question')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddQuestion()">Save Question</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: RENAME FORM
+       ========================================== -->
+  <div class="modal-overlay" id="modal-rename-form">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Rename Form</span>
+        <button class="icon-btn" onclick="closeModal('modal-rename-form')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>New Form Name</label>
+          <input type="text" id="input-rename-val">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-rename-form')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitRenameForm()">Save Name</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 4: SHARE FORM LINK
+       ========================================== -->
+  <div class="modal-overlay" id="modal-share-form">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal-header">
+        <span class="modal-title">Share Smart Form</span>
+        <button class="icon-btn" onclick="closeModal('modal-share-form')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+          Anyone with this link can fill out your smart form and trigger dynamic appointment routing.
+        </p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="share-link-input" readonly style="background: var(--surface-subtle);">
+          <button class="btn btn-secondary" onclick="copyShareLink()">Copy</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="simulateRespondentModal()">Open Respondent Preview</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 5: RESPONDENT FORM PREVIEW
+       ========================================== -->
+  <div class="modal-overlay" id="modal-preview-form">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <span class="modal-title" id="preview-form-title">Smart Form Preview</span>
+          <div style="font-size: 11.5px; color: var(--text-muted);">Respondent submission test</div>
+        </div>
+        <button class="icon-btn" onclick="closeModal('modal-preview-form')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="preview-headline-box" style="margin-bottom: 18px; display: none;">
+          <h2 id="preview-headline-text" style="font-size: 17px; font-weight: 600; margin-bottom: 4px;"></h2>
+          <p id="preview-desc-text" style="font-size: 13px; color: var(--text-muted);"></p>
+        </div>
+
+        <form id="respondent-test-form" onsubmit="handlePreviewSubmit(event)" onchange="evaluatePreviewRouting()" oninput="evaluatePreviewRouting()">
+          <div class="form-group">
+            <label>Name *</label>
+            <input type="text" name="name" required placeholder="Enter name">
+          </div>
+
+          <!-- Clean Contact Number Field -->
+          <div class="form-group">
+            <label>Contact number *</label>
+            <input type="tel" name="phone" required placeholder="Enter phone number">
+          </div>
+
+          <div class="form-group">
+            <label>Email address *</label>
+            <input type="email" name="email" required placeholder="Enter email address">
+          </div>
+
+          <div id="preview-dynamic-fields"></div>
+
+          <div style="margin-top: 18px;">
+            <button type="submit" class="btn btn-primary" style="border-radius: 20px; padding: 8px 28px;">Submit</button>
+          </div>
+        </form>
+
+        <div style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 18px;">
+          <h4 style="font-size: 13.5px; font-weight: 600; margin-bottom: 10px; color: var(--text);">Routing logic</h4>
+          <div style="border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; background: #ffffff; font-size: 13px; color: var(--text);">
+            Route to: <span id="preview-routing-logic-label" style="font-weight: 600; color: var(--text);">Select options to evaluate route</span>
+          </div>
+        </div>
+
+        <div id="preview-result-container" style="display: none; text-align: center; padding: 20px 0;">
+          <div style="font-size: 24px; margin-bottom: 8px;">✓</div>
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Submission Successful</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;" id="preview-matched-text"></p>
+          <button class="btn btn-secondary btn-sm" onclick="resetPreviewForm()">Fill Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved</div>
+
+  <!-- ==========================================
+       JAVASCRIPT APP LOGIC
+       ========================================== -->
+  <script>
+    let forms = [];
+
+    let currentFormId = null;
+    let selectedCreationMode = 'scratch';
+    let isEditingFormMode = false;
+    let editingRouteIndex = null;
+    let editingQuestionId = null;
+
+    /* DASHBOARD */
+    function renderDashboardGrid() {
+      const grid = document.getElementById("forms-grid");
+      grid.innerHTML = "";
+
+      if (forms.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--text-muted); background: var(--surface); border: 1px dashed var(--border); border-radius: 16px;">
+            <div style="font-size: 32px; margin-bottom: 10px;">📋</div>
+            <div style="font-size: 14.5px; font-weight: 600; margin-bottom: 4px; color: var(--text);">No smart forms yet</div>
+            <div style="font-size: 12.5px;">Click <strong>+ New smart form</strong> to create your first routing form.</div>
+          </div>
+        `;
+        return;
+      }
+
+      forms.forEach(form => {
+        const card = document.createElement("div");
+        card.className = "form-square-card";
+        card.onclick = () => openCardOptionsModal(form.id);
+
+        card.innerHTML = `
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+              <span class="badge badge-published">${form.status}</span>
+              <span style="font-size: 11.5px; color: var(--text-muted); font-weight: 500;">${form.responsesCount} responses</span>
+            </div>
+            <h3 style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; word-break: break-word;">${form.name}</h3>
+            <div style="font-size: 12px; color: var(--text-muted);">Created by ${form.createdBy}</div>
+          </div>
+          <div style="border-top: 1px solid var(--border); padding-top: 14px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11.5px; color: var(--text-muted);">${form.lastResponse ? form.lastResponse : 'No responses yet'}</span>
+            <span style="font-size: 18px; font-weight: 700; color: var(--text-muted); line-height: 1;">&vellip;</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function openCardOptionsModal(formId) {
+      currentFormId = formId;
+      const form = forms.find(f => f.id === formId);
+      if (form) {
+        document.getElementById("options-modal-title").textContent = form.name;
+      }
+      openModal("modal-card-options");
+    }
+
+    function handleCardAction(action) {
+      closeModal("modal-card-options");
+      if (!currentFormId) return;
+
+      if (action === 'edit') {
+        openFormBuilder(currentFormId, true);
+      } else if (action === 'share') {
+        openShareModal(currentFormId);
+      } else if (action === 'rename') {
+        triggerRenameModal(currentFormId);
+      } else if (action === 'clone') {
+        cloneForm(currentFormId);
+      } else if (action === 'export') {
+        exportFormResults(currentFormId);
+      } else if (action === 'responses') {
+        viewFormResponses(currentFormId);
+      } else if (action === 'delete') {
+        deleteForm(currentFormId);
+      }
+    }
+
+    window.addEventListener("click", (e) => {
+      if (!e.target.closest(".action-cell")) {
+        closeAllMenus();
+      }
+    });
+
+    function closeAllMenus() {
+      document.querySelectorAll(".menu-popover").forEach(m => m.classList.remove("open"));
+    }
+
+    /* FORM CREATION: STEP 1 -> STEP 2 -> DIRECTS TO FORM TAB FIRST */
+    function openCreateFormModal() {
+      selectedCreationMode = 'scratch';
+      document.getElementById("input-form-name").value = "";
+      document.getElementById("create-modal-header-title").textContent = "Create a new smart form";
+      
+      document.getElementById("create-modal-step-1").style.display = "block";
+      document.getElementById("create-modal-footer-1").style.display = "flex";
+      document.getElementById("create-modal-step-2").style.display = "none";
+      document.getElementById("create-modal-footer-2").style.display = "none";
+
+      openModal("modal-create-form");
+    }
+
+    function selectCreationPath(mode) {
+      selectedCreationMode = mode;
+      document.getElementById("create-modal-step-1").style.display = "none";
+      document.getElementById("create-modal-footer-1").style.display = "none";
+
+      document.getElementById("create-modal-step-2").style.display = "block";
+      document.getElementById("create-modal-footer-2").style.display = "flex";
+
+      if (mode === 'import') {
+        document.getElementById("create-modal-header-title").textContent = "Import an existing form";
+        document.getElementById("lbl-form-name").textContent = "Name your imported form";
+        document.getElementById("input-form-name").placeholder = "e.g. Imported Assessment Form";
+        document.getElementById("import-details-box").style.display = "block";
+      } else {
+        document.getElementById("create-modal-header-title").textContent = "Name your smart form";
+        document.getElementById("lbl-form-name").textContent = "Name your smart form";
+        document.getElementById("input-form-name").placeholder = "e.g. Client Intake Assessment";
+        document.getElementById("import-details-box").style.display = "none";
+      }
+    }
+
+    function backToStep1() {
+      document.getElementById("create-modal-header-title").textContent = "Create a new smart form";
+      document.getElementById("create-modal-step-1").style.display = "block";
+      document.getElementById("create-modal-footer-1").style.display = "flex";
+      document.getElementById("create-modal-step-2").style.display = "none";
+      document.getElementById("create-modal-footer-2").style.display = "none";
+    }
+
+    function submitCreateForm() {
+      const name = document.getElementById("input-form-name").value.trim();
+      if (!name) {
+        alert("Please enter a form name.");
+        return;
+      }
+
+      const newId = "form-" + Date.now();
+      const newForm = {
+        id: newId,
+        name: name,
+        createdBy: "Ajay Yadava",
+        lastResponse: "—",
+        responsesCount: 0,
+        status: "Published",
+        includeHeadlineDesc: false,
+        hasHeadline: true,
+        hasDescription: true,
+        headline: "",
+        description: "",
+        questions: selectedCreationMode === 'import' ? [
+          { id: "q-imp-1", label: "Consultation Requirement", type: "dropdown", mandatory: true, options: ["High Priority", "Regular Assessment", "Follow-up"] },
+          { id: "q-imp-2", label: "Preferred Time Window", type: "radio", mandatory: false, options: ["Morning Session", "Evening Session"] }
+        ] : [],
+        routes: [],
+        destinationType: "event",
+        destination: "Exploratory Call with Ajay Yadava",
+        responses: []
+      };
+
+      forms.unshift(newForm);
+      closeModal("modal-create-form");
+      showToast(selectedCreationMode === 'import' ? "Form imported successfully" : "Smart form created");
+      renderDashboardGrid();
+
+      isEditingFormMode = false;
+      openFormBuilder(newId, false);
+      switchBuilderTab('form');
+    }
+
+    function triggerRenameModal(formId) {
+      closeAllMenus();
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+      currentFormId = formId;
+      document.getElementById("input-rename-val").value = form.name;
+      openModal("modal-rename-form");
+    }
+
+    function submitRenameForm() {
+      const newName = document.getElementById("input-rename-val").value.trim();
+      if (!newName) return;
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) {
+        form.name = newName;
+        renderDashboardGrid();
+        showToast("Form renamed");
+      }
+      closeModal("modal-rename-form");
+    }
+
+    function cloneForm(formId) {
+      closeAllMenus();
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+
+      const cloned = JSON.parse(JSON.stringify(form));
+      cloned.id = "form-" + Date.now();
+      cloned.name = form.name + " (Copy)";
+      cloned.responsesCount = 0;
+      cloned.lastResponse = "—";
+      cloned.responses = [];
+
+      forms.unshift(cloned);
+      renderDashboardGrid();
+      showToast("Form cloned");
+    }
+
+    function deleteForm(formId) {
+      closeAllMenus();
+      if (!confirm("Are you sure you want to delete this smart form?")) return;
+      forms = forms.filter(f => f.id !== formId);
+      renderDashboardGrid();
+      showToast("Form deleted");
+    }
+
+    /* BUILDER CONTROLLER */
+    function openFormBuilder(formId, isEdit = true) {
+      closeAllMenus();
+      currentFormId = formId;
+      isEditingFormMode = isEdit;
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+
+      document.getElementById("builder-form-title").textContent = form.name;
+      document.getElementById("builder-form-subtitle").textContent = isEdit ? "Last edited yesterday by You." : "Created just now.";
+
+      const scheduleBtn = document.getElementById("btn-schedule-meeting");
+      const nextBtn = document.getElementById("btn-form-next");
+      if (scheduleBtn) {
+        scheduleBtn.style.display = isEdit ? "inline-flex" : "none";
+      }
+      if (nextBtn) {
+        nextBtn.style.display = isEdit ? "none" : "inline-flex";
+      }
+
+      const toggle = document.getElementById("toggle-headline-desc");
+      toggle.checked = !!form.includeHeadlineDesc;
+      document.getElementById("headline-description-card").style.display = form.includeHeadlineDesc ? "block" : "none";
+      document.getElementById("input-headline").value = form.headline || "";
+      document.getElementById("input-description").value = form.description || "";
+      updateHeadlineDescUI();
+
+      renderQuestions();
+      renderRoutesOverview();
+      initLogicTree();
+      renderResponsesTable();
+
+      document.getElementById("view-dashboard").classList.remove("active");
+      document.getElementById("view-builder").classList.add("active");
+
+      closeRouteBuilder();
+      switchBuilderTab('form');
+    }
+
+    function showDashboard() {
+      document.getElementById("view-builder").classList.remove("active");
+      document.getElementById("view-dashboard").classList.add("active");
+      renderDashboardGrid();
+    }
+
+    function switchBuilderTab(tabKey) {
+      document.querySelectorAll(".builder-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".builder-panel").forEach(p => p.classList.remove("active"));
+
+      document.getElementById(`tab-${tabKey}`).classList.add("active");
+      document.getElementById(`panel-${tabKey}`).classList.add("active");
+
+      if (tabKey === "logic") {
+        if (isEditingFormMode) {
+          closeRouteBuilder();
+          renderRoutesOverview();
+        } else {
+          openRouteBuilder();
+        }
+        initLogicTree();
+      }
+    }
+
+    /* HEADLINE & DESCRIPTION TOGGLE, DELETE, AND RESTORE */
+    function toggleHeadlineDescription(enabled) {
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) {
+        form.includeHeadlineDesc = enabled;
+        if (enabled) {
+          if (form.hasHeadline === undefined) form.hasHeadline = true;
+          if (form.hasDescription === undefined) form.hasDescription = true;
+          if (!form.hasHeadline && !form.hasDescription) {
+            form.hasHeadline = true;
+            form.hasDescription = true;
+          }
+        }
+      }
+      document.getElementById("headline-description-card").style.display = enabled ? "block" : "none";
+      updateHeadlineDescUI();
+    }
+
+    function deleteHeadlineBox() {
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) {
+        form.hasHeadline = false;
+        form.headline = "";
+      }
+      document.getElementById("input-headline").value = "";
+      updateHeadlineDescUI();
+      showToast("Headline removed");
+    }
+
+    function restoreHeadlineBox() {
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) {
+        form.hasHeadline = true;
+      }
+      updateHeadlineDescUI();
+      showToast("Headline added");
+    }
+
+    function deleteDescriptionBox() {
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) {
+        form.hasDescription = false;
+        form.description = "";
+      }
+      document.getElementById("input-description").value = "";
+      updateHeadlineDescUI();
+      showToast("Description removed");
+    }
+
+    function restoreDescriptionBox() {
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) {
+        form.hasDescription = true;
+      }
+      updateHeadlineDescUI();
+      showToast("Description added");
+    }
+
+    function updateHeadlineDescUI() {
+      const form = forms.find(f => f.id === currentFormId);
+      const hasHeadline = form ? (form.hasHeadline !== false) : true;
+      const hasDescription = form ? (form.hasDescription !== false) : true;
+
+      const headlineBox = document.getElementById("headline-box");
+      const addHeadlineBtn = document.getElementById("add-headline-btn-wrap");
+      const descBox = document.getElementById("description-box");
+      const addDescBtn = document.getElementById("add-description-btn-wrap");
+
+      if (headlineBox && addHeadlineBtn) {
+        headlineBox.style.display = hasHeadline ? "block" : "none";
+        addHeadlineBtn.style.display = hasHeadline ? "none" : "block";
+      }
+      if (descBox && addDescBtn) {
+        descBox.style.display = hasDescription ? "block" : "none";
+        addDescBtn.style.display = hasDescription ? "none" : "block";
+      }
+    }
+
+    function updateHeadline(val) {
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) form.headline = val;
+    }
+
+    function updateDescription(val) {
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) form.description = val;
+    }
+
+    function saveFormStudio() {
+      showToast("Changes saved");
+    }
+
+    /* QUESTIONS HANDLER & EDITING WITH OPTION DELETE */
+    function renderQuestions() {
+      const container = document.getElementById("questions-list-container");
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return;
+
+      if (!form.questions || form.questions.length === 0) {
+        container.innerHTML = "";
+        return;
+      }
+
+      container.innerHTML = form.questions.map((q) => {
+        const typeDisplay = q.type.charAt(0).toUpperCase() + q.type.slice(1);
+        let inputFieldHtml = '';
+        if (q.type === 'dropdown') {
+          inputFieldHtml = `
+            <select style="margin-top: 6px;" disabled style="background: var(--surface-subtle);">
+              <option value="">Select...</option>
+              ${(q.options || []).map(o => `<option>${o}</option>`).join("")}
+            </select>`;
+        } else if (q.type === 'radio') {
+          inputFieldHtml = `
+            <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+              ${(q.options || []).map(o => `
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 6px;">
+                  <input type="radio" disabled> ${o}
+                </label>
+              `).join("")}
+            </div>`;
+        } else if (q.type === 'paragraph') {
+          inputFieldHtml = `<textarea rows="2" style="margin-top: 6px;" placeholder="Enter your answer" disabled></textarea>`;
+        } else {
+          inputFieldHtml = `<input type="text" style="margin-top: 6px;" placeholder="Enter your answer" disabled>`;
+        }
+
+        return `
+          <div class="question-row">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div>
+                <span class="field-tag">${typeDisplay}</span>
+                <div style="font-weight: 500;">
+                  ${q.label} ${q.mandatory ? '<span style="color: var(--danger);">*</span>' : ''}
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="badge">${q.mandatory ? "Required" : "Optional"}</span>
+                <button class="btn btn-secondary btn-sm" onclick="openEditQuestionModal('${q.id}')">Edit</button>
+                <button class="btn btn-secondary btn-sm" onclick="deleteQuestion('${q.id}')">Delete</button>
+              </div>
+            </div>
+            ${inputFieldHtml}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function appendOptionRow(val = "") {
+      const list = document.getElementById("modal-options-list");
+      const div = document.createElement("div");
+      div.className = "option-item";
+      div.innerHTML = `
+        <input type="text" placeholder="Option ${list.children.length + 1}" value="${val}" class="q-opt-input" style="flex: 1;">
+        <button type="button" class="icon-btn" onclick="removeOptionRow(this)" title="Delete choice" style="width: 32px; height: 32px; font-size: 16px; color: var(--text-muted);">&times;</button>
+      `;
+      list.appendChild(div);
+    }
+
+    function removeOptionRow(btn) {
+      const list = document.getElementById("modal-options-list");
+      if (list.children.length <= 1) {
+        alert("A choice question must have at least one choice.");
+        return;
+      }
+      btn.closest(".option-item").remove();
+    }
+
+    function openAddQuestionModal() {
+      editingQuestionId = null;
+      document.getElementById("question-modal-title").textContent = "Add question";
+      document.getElementById("input-q-type").value = "dropdown";
+      document.getElementById("input-q-label").value = "";
+      document.getElementById("input-q-mandatory").checked = true;
+      document.getElementById("question-options-group").style.display = "block";
+      
+      const optionsList = document.getElementById("modal-options-list");
+      optionsList.innerHTML = "";
+      appendOptionRow();
+      appendOptionRow();
+
+      openModal("modal-add-question");
+    }
+
+    function openEditQuestionModal(questionId) {
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return;
+      const q = form.questions.find(item => item.id === questionId);
+      if (!q) return;
+
+      editingQuestionId = questionId;
+      document.getElementById("question-modal-title").textContent = "Edit question";
+      document.getElementById("input-q-type").value = q.type;
+      document.getElementById("input-q-label").value = q.label;
+      document.getElementById("input-q-mandatory").checked = !!q.mandatory;
+
+      handleQuestionTypeChange(q.type);
+
+      const optionsList = document.getElementById("modal-options-list");
+      optionsList.innerHTML = "";
+      if (q.options && q.options.length > 0) {
+        q.options.forEach(opt => appendOptionRow(opt));
+      } else {
+        appendOptionRow();
+        appendOptionRow();
+      }
+
+      openModal("modal-add-question");
+    }
+
+    function handleQuestionTypeChange(type) {
+      const optGroup = document.getElementById("question-options-group");
+      optGroup.style.display = (type === "dropdown" || type === "radio") ? "block" : "none";
+    }
+
+    function submitAddQuestion() {
+      const type = document.getElementById("input-q-type").value;
+      const label = document.getElementById("input-q-label").value.trim();
+      const mandatory = document.getElementById("input-q-mandatory").checked;
+
+      if (!label) {
+        alert("Please enter the question.");
+        return;
+      }
+
+      let parsedOptions = [];
+      if (type === "dropdown" || type === "radio") {
+        const inputs = Array.from(document.querySelectorAll(".q-opt-input"));
+        parsedOptions = inputs.map(i => i.value.trim()).filter(v => v.length > 0);
+        if (parsedOptions.length < 1) {
+          alert("Dropdown and Radio questions require at least one choice.");
+          return;
+        }
+      }
+
+      const form = forms.find(f => f.id === currentFormId);
+      if (form) {
+        if (editingQuestionId) {
+          const q = form.questions.find(item => item.id === editingQuestionId);
+          if (q) {
+            q.type = type;
+            q.label = label;
+            q.mandatory = mandatory;
+            q.options = parsedOptions;
+            showToast("Question updated");
+          }
+        } else {
+          form.questions.push({
+            id: "q-" + Date.now(),
+            label: label,
+            type: type,
+            mandatory: mandatory,
+            options: parsedOptions
+          });
+          showToast("Question added");
+        }
+        renderQuestions();
+        initLogicTree();
+      }
+      closeModal("modal-add-question");
+    }
+
+    function deleteQuestion(questionId) {
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return;
+      form.questions = form.questions.filter(q => q.id !== questionId);
+      renderQuestions();
+      initLogicTree();
+      showToast("Question removed");
+    }
+
+    /* DESTINATION TYPE SELECTION HANDLER */
+    function handleDestinationTypeChange(type) {
+      document.getElementById("dest-type-event-wrap").style.display = (type === 'event') ? 'block' : 'none';
+      document.getElementById("dest-type-message-wrap").style.display = (type === 'message') ? 'block' : 'none';
+      document.getElementById("dest-type-url-wrap").style.display = (type === 'url') ? 'block' : 'none';
+    }
+
+    /* DYNAMIC LOGIC ROUTE GENERATION */
+    function generateSummaryFromBuilder() {
+      const form = forms.find(f => f.id === currentFormId);
+      const nodes = document.querySelectorAll("#logic-nodes-list .logic-branch-node");
+      const parts = [];
+
+      nodes.forEach((node, idx) => {
+        const nodeType = node.getAttribute("data-node-type") || (idx === 0 ? "IF" : "AND");
+        const qSelect = node.querySelector(".logic-q-select");
+        const qId = qSelect ? qSelect.value : "";
+        const qObj = form && form.questions ? form.questions.find(q => q.id === qId) : null;
+        const qLabel = qObj ? qObj.label : (qSelect && qSelect.options[qSelect.selectedIndex] ? qSelect.options[qSelect.selectedIndex].text : "Question");
+
+        const valSelects = Array.from(node.querySelectorAll(".value-select"));
+        const vals = valSelects.map(v => v.value.trim()).filter(v => v.length > 0);
+
+        if (qLabel && qLabel !== "Choose a question") {
+          let clause = "";
+          if (idx === 0) {
+            clause = `If "${qLabel}" is `;
+          } else if (nodeType === "OR IF") {
+            clause = ` or if "${qLabel}" is `;
+          } else {
+            clause = ` and "${qLabel}" is `;
+          }
+
+          if (vals.length > 0) {
+            clause += vals.map(val => `<strong>${val}</strong>`).join(" or ");
+          } else {
+            clause += `<strong>(any answer)</strong>`;
+          }
+          parts.push(clause);
+        }
+      });
+
+      if (parts.length === 0) {
+        return `If form follows condition then go to`;
+      }
+
+      return parts.join("") + " then go to";
+    }
+
+    function renderRoutesOverview() {
+      const form = forms.find(f => f.id === currentFormId);
+      const container = document.getElementById("active-routes-container");
+      if (!form || !container) return;
+
+      if (!form.routes || form.routes.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 24px 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
+            No active routes configured yet. Click <strong>+ Create</strong> to add your first route.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = form.routes.map((route, idx) => `
+        <div class="route-item-card">
+          <span class="route-num">${idx + 1}</span>
+          <span class="route-grip">⠿</span>
+          <div style="flex: 1;">
+            <div style="font-size: 12.5px; color: var(--text); line-height: 1.45;">
+              ${route.summaryHtml}
+            </div>
+
+            <div class="route-destination-badge">
+              <div>
+                <div style="font-weight: 600; font-size: 13px;">${route.destinationTitle}</div>
+                <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">${route.destSubtitle || '15 mins, One-on-One'}</div>
+              </div>
+              <div class="avatar-circle">${route.avatar || 'A'}</div>
+            </div>
+          </div>
+
+          <div class="action-cell">
+            <button class="icon-btn" onclick="toggleRouteItemMenu(event, '${idx}')" title="Options">&vellip;</button>
+            <div class="menu-popover" id="route-item-popover-${idx}">
+              <button class="menu-item" onclick="openRouteBuilder(${idx})">✏️ Edit route</button>
+              <button class="menu-item" onclick="cloneCurrentRoute(${idx})">📋 Clone route</button>
+              <button class="menu-item danger-item" onclick="deleteCurrentRoute(${idx})">🗑️ Delete route</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function openRouteBuilder(routeIndex = null) {
+      closeAllMenus();
+      editingRouteIndex = routeIndex;
+      document.getElementById("logic-routes-overview").style.display = "none";
+      document.getElementById("logic-route-builder").style.display = "block";
+      initLogicTree();
+    }
+
+    function closeRouteBuilder() {
+      document.getElementById("logic-route-builder").style.display = "none";
+      document.getElementById("logic-routes-overview").style.display = "block";
+    }
+
+    function handleBackFromRouteBuilder() {
+      if (isEditingFormMode) {
+        closeRouteBuilder();
+        renderRoutesOverview();
+      } else {
+        switchBuilderTab('form');
+      }
+    }
+
+    function toggleRouteItemMenu(event, idx) {
+      event.stopPropagation();
+      closeAllMenus();
+      const popover = document.getElementById(`route-item-popover-${idx}`);
+      if (popover) {
+        popover.classList.toggle("open");
+      }
+    }
+
+    function cloneCurrentRoute(idx) {
+      closeAllMenus();
+      const form = forms.find(f => f.id === currentFormId);
+      if (form && form.routes && form.routes[idx]) {
+        const cloned = JSON.parse(JSON.stringify(form.routes[idx]));
+        cloned.id = "route-" + Date.now();
+        form.routes.splice(idx + 1, 0, cloned);
+        renderRoutesOverview();
+        showToast("Route cloned");
+      }
+    }
+
+    function deleteCurrentRoute(idx) {
+      closeAllMenus();
+      const form = forms.find(f => f.id === currentFormId);
+      if (form && form.routes) {
+        if (confirm("Are you sure you want to delete this route?")) {
+          form.routes.splice(idx, 1);
+          renderRoutesOverview();
+          showToast("Route deleted");
+        }
+      }
+    }
+
+    function getChoiceQuestions() {
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return [];
+      return form.questions.filter(q => q.type === "dropdown" || q.type === "radio");
+    }
+
+    function initLogicTree() {
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return;
+
+      const choiceQuestions = getChoiceQuestions();
+      document.querySelectorAll(".logic-q-select").forEach(sel => {
+        const curVal = sel.value;
+        sel.innerHTML = `<option value="">Choose a question</option>` +
+          choiceQuestions.map(q => `<option value="${q.id}">${q.label}</option>`).join("");
+        if (curVal) sel.value = curVal;
+      });
+
+      if (form.destinationType) {
+        document.getElementById("logic-destination-type").value = form.destinationType;
+        handleDestinationTypeChange(form.destinationType);
+      }
+
+      if (form.destination) {
+        if (form.destinationType === 'event') {
+          const eventSelect = document.getElementById("logic-event-type-select");
+          if (eventSelect) eventSelect.value = form.destination;
+        } else if (form.destinationType === 'message') {
+          document.getElementById("logic-custom-message-input").value = form.destination;
+        } else if (form.destinationType === 'url') {
+          document.getElementById("logic-external-url-input").value = form.destination;
+        }
+      }
+    }
+
+    function handleLogicQuestionChange(selectEl) {
+      const box = selectEl.closest(".logic-box-body");
+      const questionId = selectEl.value;
+      const form = forms.find(f => f.id === currentFormId);
+      const q = form ? form.questions.find(item => item.id === questionId) : null;
+
+      const valSelects = box.querySelectorAll(".value-select");
+      const opSelects = box.querySelectorAll(".operator-select");
+
+      valSelects.forEach(valSel => {
+        if (!q || !q.options || q.options.length === 0) {
+          valSel.innerHTML = `<option value="">Select option</option>`;
+          valSel.style.background = "#f1f5f9";
+        } else {
+          valSel.style.background = "#ffffff";
+          valSel.innerHTML = `<option value="">Select option</option>` +
+            q.options.map(opt => `<option value="${opt}">${opt}</option>`).join("");
+        }
+      });
+
+      opSelects.forEach(opSel => {
+        opSel.style.background = questionId ? "#ffffff" : "#f1f5f9";
+      });
+    }
+
+    function addAndBlock(btn) {
+      const currentNode = btn.closest(".logic-branch-node");
+      const choiceQuestions = getChoiceQuestions();
+
+      const andNode = document.createElement("div");
+      andNode.className = "logic-branch-node";
+      andNode.setAttribute("data-node-type", "AND");
+      andNode.innerHTML = `
+        <div class="rail-badge">AND</div>
+        <div class="logic-box">
+          <div class="logic-box-head">
+            <span class="logic-box-title">the form follows this condition</span>
+            <span class="info-circle" title="Information">ⓘ</span>
+          </div>
+          <div class="logic-box-body">
+            <select class="logic-q-select" onchange="handleLogicQuestionChange(this)">
+              <option value="">Choose a question</option>
+              ${choiceQuestions.map(q => `<option value="${q.id}">${q.label}</option>`).join("")}
+            </select>
+
+            <div class="logic-conditions-list">
+              <div class="logic-row">
+                <select class="operator-select" style="background: #f1f5f9;">
+                  <option value="is">is</option>
+                  <option value="is_not">is not</option>
+                </select>
+                <select class="value-select" style="background: #f1f5f9;">
+                  <option value="">Select option</option>
+                </select>
+                <button class="btn-pill-action" type="button" onclick="addOrRow(this)">+ or</button>
+                <button class="trash-btn" type="button" onclick="removeLogicRowOrNode(this)" title="Delete">🗑</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 14px;">
+              <button class="btn-pill-action" type="button" onclick="addAndBlock(this)">+ and</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      currentNode.parentNode.insertBefore(andNode, currentNode.nextSibling);
+    }
+
+    function addOrIfBlock() {
+      const container = document.getElementById("logic-nodes-list");
+      const choiceQuestions = getChoiceQuestions();
+
+      const orIfNode = document.createElement("div");
+      orIfNode.className = "logic-branch-node";
+      orIfNode.setAttribute("data-node-type", "OR IF");
+      orIfNode.innerHTML = `
+        <div class="rail-badge rail-badge-lg">OR IF</div>
+        <div class="logic-box">
+          <div class="logic-box-head">
+            <span class="logic-box-title">the form follows this condition</span>
+            <span class="info-circle" title="Information">ⓘ</span>
+          </div>
+          <div class="logic-box-body">
+            <select class="logic-q-select" onchange="handleLogicQuestionChange(this)">
+              <option value="">Choose a question</option>
+              ${choiceQuestions.map(q => `<option value="${q.id}">${q.label}</option>`).join("")}
+            </select>
+
+            <div class="logic-conditions-list">
+              <div class="logic-row">
+                <select class="operator-select" style="background: #f1f5f9;">
+                  <option value="is">is</option>
+                  <option value="is_not">is not</option>
+                </select>
+                <select class="value-select" style="background: #f1f5f9;">
+                  <option value="">Select option</option>
+                </select>
+                <button class="btn-pill-action" type="button" onclick="addOrRow(this)">+ or</button>
+                <button class="trash-btn" type="button" onclick="removeLogicRowOrNode(this)" title="Delete">🗑</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 14px;">
+              <button class="btn-pill-action" type="button" onclick="addAndBlock(this)">+ and</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(orIfNode);
+    }
+
+    function addOrRow(btn) {
+      const box = btn.closest(".logic-box-body");
+      const conditionsList = box.querySelector(".logic-conditions-list");
+      const qSelect = box.querySelector(".logic-q-select");
+      const questionId = qSelect ? qSelect.value : "";
+      const form = forms.find(f => f.id === currentFormId);
+      const q = form ? form.questions.find(item => item.id === questionId) : null;
+
+      const optsHtml = (q && q.options && q.options.length) 
+        ? `<option value="">Select option</option>` + q.options.map(opt => `<option value="${opt}">${opt}</option>`).join("")
+        : `<option value="">Select option</option>`;
+
+      const orRow = document.createElement("div");
+      orRow.className = "logic-row";
+      orRow.innerHTML = `
+        <div class="or-badge">OR</div>
+        <select class="value-select" style="${questionId ? 'background:#ffffff;' : 'background:#f1f5f9;'}">
+          ${optsHtml}
+        </select>
+        <button class="btn-pill-action" type="button" onclick="addOrRow(this)">+ or</button>
+        <button class="trash-btn" type="button" onclick="removeLogicRowOrNode(this)" title="Delete">🗑</button>
+      `;
+
+      conditionsList.appendChild(orRow);
+    }
+
+    function removeLogicRowOrNode(btn) {
+      const row = btn.closest(".logic-row");
+      const conditionsList = btn.closest(".logic-conditions-list");
+      const node = btn.closest(".logic-branch-node");
+      const nodeType = node ? node.getAttribute("data-node-type") : "";
+
+      if (row && row.querySelector(".or-badge")) {
+        row.remove();
+        return;
+      }
+
+      if (nodeType === "AND" || nodeType === "OR IF") {
+        node.remove();
+        return;
+      }
+
+      if (nodeType === "IF") {
+        const qSelect = node.querySelector(".logic-q-select");
+        if (qSelect) qSelect.value = "";
+        handleLogicQuestionChange(qSelect);
+        const orRows = conditionsList.querySelectorAll(".or-badge");
+        orRows.forEach(orEl => orEl.closest(".logic-row").remove());
+      }
+    }
+
+    function saveLogicRoute() {
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return;
+
+      if (!form.routes) form.routes = [];
+
+      const summaryHtml = generateSummaryFromBuilder();
+      const destType = document.getElementById("logic-destination-type").value;
+      let destinationVal = "";
+      let destSubtitle = "";
+      let avatarChar = "A";
+
+      if (destType === "event") {
+        destinationVal = document.getElementById("logic-event-type-select").value || "Exploratory Call with Ajay Yadava";
+        destSubtitle = "15 mins, One-on-One";
+        avatarChar = destinationVal.charAt(0).toUpperCase() || 'A';
+      } else if (destType === "message") {
+        destinationVal = document.getElementById("logic-custom-message-input").value.trim() || "We'll email you within 24 hours.";
+        destSubtitle = "Display custom message";
+        avatarChar = "M";
+      } else if (destType === "url") {
+        destinationVal = document.getElementById("logic-external-url-input").value.trim() || "https://example.com/pricing";
+        destSubtitle = "Redirect to URL";
+        avatarChar = "🔗";
+      }
+
+      const nodes = document.querySelectorAll("#logic-nodes-list .logic-branch-node");
+      const structuredConditions = [];
+      nodes.forEach(node => {
+        const qSelect = node.querySelector(".logic-q-select");
+        const questionId = qSelect ? qSelect.value : "";
+        const opSelect = node.querySelector(".operator-select");
+        const operator = opSelect ? opSelect.value : "is";
+        const valSelects = Array.from(node.querySelectorAll(".value-select"));
+        const values = valSelects.map(v => v.value.trim()).filter(v => v.length > 0);
+
+        if (questionId && values.length > 0) {
+          structuredConditions.push({ questionId, operator, values });
+        }
+      });
+
+      const newRoute = {
+        id: "route-" + Date.now(),
+        summaryHtml: summaryHtml,
+        destinationType: destType,
+        destinationTitle: destinationVal,
+        destSubtitle: destSubtitle,
+        avatar: avatarChar,
+        conditions: structuredConditions
+      };
+
+      if (editingRouteIndex !== null && form.routes[editingRouteIndex]) {
+        form.routes[editingRouteIndex] = newRoute;
+      } else {
+        form.routes.push(newRoute);
+      }
+
+      form.destinationType = destType;
+      form.destination = destinationVal;
+      showToast("Route saved successfully");
+      renderRoutesOverview();
+      closeRouteBuilder();
+    }
+
+    /* RESPONSES LOG */
+    function viewFormResponses(formId) {
+      openFormBuilder(formId, true);
+      switchBuilderTab("responses");
+    }
+
+    function renderResponsesTable() {
+      const tbody = document.getElementById("responses-table-body");
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return;
+
+      if (!form.responses || form.responses.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No responses logged yet for this form.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = form.responses.map(r => `
+        <tr>
+          <td>${r.timestamp}</td>
+          <td><strong>${r.name}</strong></td>
+          <td>${r.email}</td>
+          <td>${r.phone}</td>
+          <td>${r.summary || "—"}</td>
+          <td><span class="badge">${r.routedTo}</span></td>
+        </tr>
+      `).join("");
+    }
+
+    function exportFormResults(formId) {
+      closeAllMenus();
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(form.responses, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `${form.name.toLowerCase().replace(/\s+/g, '_')}_results.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Results exported");
+    }
+
+    function exportCurrentResponses() {
+      exportFormResults(currentFormId);
+    }
+
+    /* SHARE & PREVIEW */
+    function openShareModal(formId) {
+      closeAllMenus();
+      currentFormId = formId;
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+
+      const generatedUrl = `${window.location.origin}/forms/s/${form.id}`;
+      document.getElementById("share-link-input").value = generatedUrl;
+      openModal("modal-share-form");
+    }
+
+    function copyShareLink() {
+      const copyText = document.getElementById("share-link-input");
+      copyText.select();
+      copyText.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(copyText.value);
+      showToast("Link copied");
+    }
+
+    /* DYNAMIC ROUTE EVALUATION FOR PREVIEW */
+    function evaluatePreviewRouting() {
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return "Custom message";
+
+      const previewForm = document.getElementById("respondent-test-form");
+      const formData = new FormData(previewForm);
+
+      let matchedDestination = null;
+
+      if (form.routes && form.routes.length > 0) {
+        for (const route of form.routes) {
+          if (!route.conditions || route.conditions.length === 0) continue;
+
+          let matches = true;
+          for (const cond of route.conditions) {
+            const userVal = formData.get(cond.questionId);
+            const containsVal = cond.values.includes(userVal);
+            if (cond.operator === "is" && !containsVal) {
+              matches = false;
+              break;
+            } else if (cond.operator === "is_not" && containsVal) {
+              matches = false;
+              break;
+            }
+          }
+
+          if (matches) {
+            matchedDestination = route.destinationTitle;
+            break;
+          }
+        }
+      }
+
+      if (!matchedDestination) {
+        matchedDestination = (form.routes && form.routes.length > 0) ? "Book a 15 mins call with me" : (form.destination || "Custom message");
+      }
+
+      const labelEl = document.getElementById("preview-routing-logic-label");
+      if (labelEl) {
+        labelEl.textContent = matchedDestination;
+      }
+
+      return matchedDestination;
+    }
+
+    function simulateRespondentModal() {
+      closeModal("modal-share-form");
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return;
+
+      document.getElementById("preview-form-title").textContent = form.name;
+      document.getElementById("respondent-test-form").reset();
+      document.getElementById("respondent-test-form").style.display = "block";
+      document.getElementById("preview-result-container").style.display = "none";
+
+      const headlineBox = document.getElementById("preview-headline-box");
+      const showHeadline = form.includeHeadlineDesc && (form.hasHeadline !== false) && form.headline;
+      const showDesc = form.includeHeadlineDesc && (form.hasDescription !== false) && form.description;
+
+      if (showHeadline || showDesc) {
+        headlineBox.style.display = "block";
+        document.getElementById("preview-headline-text").textContent = showHeadline ? form.headline : "";
+        document.getElementById("preview-desc-text").textContent = showDesc ? form.description : "";
+      } else {
+        headlineBox.style.display = "none";
+      }
+
+      const container = document.getElementById("preview-dynamic-fields");
+      container.innerHTML = form.questions.map(q => {
+        if (q.type === "dropdown") {
+          return `
+            <div class="form-group">
+              <label>${q.label} ${q.mandatory ? '*' : ''}</label>
+              <select name="${q.id}" ${q.mandatory ? 'required' : ''} onchange="evaluatePreviewRouting()">
+                <option value="">Select option...</option>
+                ${q.options.map(o => `<option value="${o}">${o}</option>`).join("")}
+              </select>
+            </div>
+          `;
+        } else if (q.type === "radio") {
+          return `
+            <div class="form-group">
+              <label>${q.label} ${q.mandatory ? '*' : ''}</label>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                ${q.options.map((o, idx) => `
+                  <label style="font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="${q.id}" value="${o}" ${q.mandatory && idx === 0 ? 'required' : ''} onchange="evaluatePreviewRouting()">
+                    ${o}
+                  </label>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        } else if (q.type === "paragraph") {
+          return `
+            <div class="form-group">
+              <label>${q.label} ${q.mandatory ? '*' : ''}</label>
+              <textarea name="${q.id}" rows="2" ${q.mandatory ? 'required' : ''} placeholder="Enter your answer"></textarea>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="form-group">
+              <label>${q.label} ${q.mandatory ? '*' : ''}</label>
+              <input type="text" name="${q.id}" ${q.mandatory ? 'required' : ''} placeholder="Enter your answer">
+            </div>
+          `;
+        }
+      }).join("");
+
+      openModal("modal-preview-form");
+      evaluatePreviewRouting();
+    }
+
+    function handlePreviewSubmit(e) {
+      e.preventDefault();
+      const form = forms.find(f => f.id === currentFormId);
+      if (!form) return;
+
+      const formData = new FormData(e.target);
+      const nameVal = formData.get("name") || "Anonymous";
+      const emailVal = formData.get("email") || "—";
+      const rawPhone = formData.get("phone") || "";
+      const phoneVal = rawPhone ? rawPhone.trim() : "—";
+
+      const assignedDestination = evaluatePreviewRouting();
+
+      form.responses.unshift({
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+        name: nameVal,
+        email: emailVal,
+        phone: phoneVal,
+        summary: "Form answers matched route",
+        routedTo: assignedDestination
+      });
+      form.responsesCount += 1;
+      form.lastResponse = "Just now";
+
+      document.getElementById("respondent-test-form").style.display = "none";
+      document.getElementById("preview-result-container").style.display = "block";
+      document.getElementById("preview-matched-text").textContent = `Assigned to: ${assignedDestination}`;
+
+      renderDashboardGrid();
+      renderResponsesTable();
+    }
+
+    function resetPreviewForm() {
+      document.getElementById("respondent-test-form").reset();
+      document.getElementById("respondent-test-form").style.display = "block";
+      document.getElementById("preview-result-container").style.display = "none";
+      evaluatePreviewRouting();
+    }
+
+    /* MODAL HELPERS */
+    function openModal(id) {
+      document.getElementById(id).classList.add("active");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("active");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 1800);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      renderDashboardGrid();
+    });
+  </script>
+</body>
+</html>
