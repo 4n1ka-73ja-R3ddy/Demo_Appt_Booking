@@ -1,21 +1,20 @@
-/* AppointmentHub frontend prototype
-   IMPORTANT: localStorage is only a demo stand-in for the future backend/database.
-*/
-const KEYS = { availability:'ah_availability_v2', bookings:'ah_bookings_v2', selected:'ah_selected_v2' };
+/* AppointmentHub frontend prototype. localStorage is demo-only; real shared availability
+   must be supplied by the Django backend + Google Calendar integration. The intended candidate
+   journey begins with a separate smart-routing form. Eligible candidates are redirected to index.html.
+   Payment is not required. */
+const KEYS = { availability:'ah_availability_v2', bookings:'ah_bookings_v3', selected:'ah_selected_v2' };
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const WEEK_ORDER = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const CONFIG = {
-  EXTERNAL_FORM_URL: '', // Paste teammate's real form URL here when provided.
-  PAYMENT_AMOUNT: 100 // Demo amount only; confirm actual fee with ma'am.
+  EXTERNAL_FORM_URL: '', // Teammate supplies the smart-routing form URL; see ROUTING_INTEGRATION.md.
+  BOOKING_WINDOW_DAYS: 7, // Candidates can only book within the next 7 days (meeting decision, Oct 8 2026).
+  // Durations shown in the mentor's Calendly-style walkthrough: 15, 30, 45 and 60 minutes.
+  DURATIONS: [15, 30, 45, 60]
 };
+// Booking is confirmed immediately after the eligible candidate chooses a still-free slot.
+// Candidate qualification belongs to the separate smart-routing form, not this calendar UI.
 const STATUS = {
-  PENDING_FORM:{label:'Form pending',cls:'pending'},
-  PENDING_APPROVAL:{label:'Awaiting trainer',cls:'pending'},
-  ACCEPTED:{label:'Payment pending',cls:'accepted'},
-  CONFIRMED:{label:'Confirmed',cls:'confirmed'},
-  REJECTED:{label:'Rejected',cls:'rejected'},
-  CANCELLED:{label:'Cancelled',cls:'rejected'},
-  EXPIRED:{label:'Expired',cls:'rejected'}
+  CONFIRMED:{label:'Confirmed',cls:'confirmed'}
 };
 const DEFAULT_AVAIL = {weekly:{
   Monday:{on:true,start:'10:00',end:'13:00'}, Tuesday:{on:true,start:'10:00',end:'13:00'},
@@ -39,26 +38,39 @@ function dayOf(iso){return DAYS[new Date(iso+'T00:00:00').getDay()]}
 function prettyDate(iso){return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}
 function monthLabel(iso){return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'})}
 function overlaps(aStart,aDuration,bStart,bDuration){return toMin(aStart)<toMin(bStart)+bDuration && toMin(bStart)<toMin(aStart)+aDuration}
-function acceptedConflict(date,time,duration,ignoreId=''){return getBookings().some(b=>b.id!==ignoreId&&b.date===date&&['ACCEPTED','CONFIRMED'].includes(b.status)&&overlaps(time,duration,b.time,b.duration))}
-function priorityOf(b){
-  // DEMO ONLY: score is displayed as a priority indicator until ma'am confirms the real rule.
-  const score=Number(b.form?.score); if(!Number.isFinite(score))return {label:'Not scored',cls:'none',rank:-1,score:null};
-  if(score>=75)return {label:'High',cls:'high',rank:3,score};
-  if(score>=50)return {label:'Medium',cls:'medium',rank:2,score};
-  return {label:'Low',cls:'low',rank:1,score};
-}
+// Only a CONFIRMED booking can block a slot now — there is no ACCEPTED/pending state to check.
+function confirmedConflict(date,time,duration,ignoreId=''){return getBookings().some(b=>b.id!==ignoreId&&b.date===date&&b.status==='CONFIRMED'&&overlaps(time,duration,b.time,b.duration))}
+// Last 7-day booking window, per the Oct 8 2026 meeting decision. Convention used here: "today"
+// counts as day 1, so the window runs through today + (BOOKING_WINDOW_DAYS - 1). Confirm the
+// exact inclusive/exclusive convention with ma'am before this becomes the backend rule too.
+function maxBookableDate(){const d=new Date();d.setDate(d.getDate()+CONFIG.BOOKING_WINDOW_DAYS-1);return localISO(d)}
 function getSlots(iso,duration){
   const a=getAvail(),w=a.weekly[dayOf(iso)]; if(!w||!w.on)return [];
-  const leaves=a.leaves.filter(l=>l.date===iso), bookings=getBookings().filter(b=>b.date===iso);
+  const leaves=a.leaves.filter(l=>l.date===iso), bookings=getBookings().filter(b=>b.date===iso&&b.status==='CONFIRMED');
   const now=new Date(), today=iso===localISO(now), nowMin=now.getHours()*60+now.getMinutes(); const out=[];
   for(let s=toMin(w.start);s+duration<=toMin(w.end);s+=duration){
     if(today&&s<=nowMin)continue; const e=s+duration, clash=(x,y)=>s<y&&x<e;
     let status='available';
-    if(bookings.some(b=>['ACCEPTED','CONFIRMED'].includes(b.status)&&clash(toMin(b.time),toMin(b.time)+b.duration)))status='booked';
+    if(bookings.some(b=>clash(toMin(b.time),toMin(b.time)+b.duration)))status='booked';
     else if(leaves.some(l=>!l.start||clash(toMin(l.start),toMin(l.end))))status='unavailable';
-    else if(bookings.some(b=>b.status==='PENDING_FORM'||b.status==='PENDING_APPROVAL'))status='requested';
     out.push({time:toTime(s),status});
   }
   return out;
 }
 function resetDemo(){localStorage.removeItem(KEYS.availability);localStorage.removeItem(KEYS.bookings);localStorage.removeItem(KEYS.selected)}
+
+
+// Live backend API. Serve this frontend with VS Code Live Server (not file://).
+const API_BASE_URL = window.APPOINTMENT_API_BASE_URL || 'http://127.0.0.1:8000';
+async function apiFetch(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  let payload = {};
+  try { payload = await response.json(); } catch { /* empty/non-JSON response */ }
+  if (!response.ok) throw new Error(payload.error || payload.message || `Request failed (${response.status})`);
+  return payload;
+}
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}

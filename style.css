@@ -44,3 +44,6 @@
 .status.rejected{background:var(--redbg);color:var(--red)}
 .slot.requested{background:#fff7e0;color:#8a5a00;border-color:#efd48a}
 .slot.booked{background:#f3f4f6;color:#7b8794;border-color:#dfe3e8}
+
+/* ---- required-field indicator (red asterisk), added per sir's feedback ---- */
+.required-mark{color:var(--red);margin-left:3px;font-weight:900}

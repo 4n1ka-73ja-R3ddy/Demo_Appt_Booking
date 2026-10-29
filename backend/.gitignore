@@ -1,0 +1,10 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+db.sqlite3
+secrets/
+
+# Google OAuth tokens and client credentials
+**/token.json
+**/credentials.json

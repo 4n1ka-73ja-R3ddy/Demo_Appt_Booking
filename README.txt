@@ -1,100 +1,107 @@
-APPOINTMENTHUB — FINAL FRONTEND PROTOTYPE
-=========================================
+APPOINTMENTHUB — FRONTEND PROTOTYPE (UPDATED OCT 2026)
+=======================================================
 
 Purpose
 -------
-This is a professional frontend prototype for the appointment request workflow described in the current project brief.
+This is a frontend prototype for the appointment-booking workflow, updated after sir reviewed
+the earlier version on the Oct 8, 2026 Google Meet call. The previous approval/payment workflow is not part of the recalled Calendly-like flow. The intended full journey begins with a separate smart-routing form maintained by a teammate; only eligible candidates should reach this calendar, then booking is confirmed directly if the slot remains free.
+
+WHAT CHANGED IN THIS UPDATE
+---------------------------
+- Removed: trainer accept/reject, payment step, pending-approval status, priority-score indicator.
+- Added: red-asterisk required-field markers on name/email/phone, a 7-day max booking window,
+  duration options of 15, 30, 45 or 60 minutes (confirm the final list with the mentor),
+  and a confirmed-appointments view on the trainer side (replacing the request inbox).
+- Fixed a real bug: trainer.js was writing availability changes under a key that didn't exist
+  (KEYS.avail instead of KEYS.availability), so trainer edits never actually reached the booking
+  page. This is now fixed — availability changes made on the trainer side immediately affect
+  what candidates see.
+- Kept unchanged: weekly availability management and specific busy/leave/holiday blocking on the
+  trainer side (sir specifically liked this feature).
+- Added `ROUTING_INTEGRATION.md`: the upstream smart-routing form is part of the intended journey, but its questions and qualification rules belong to another teammate and are not invented in this package.
 
 IMPORTANT RESPONSIBILITY BOUNDARY
----------------------------------
-The real external application form is NOT created in this package. It is owned/provided by another project team member.
-This package only provides the integration point and a demo simulation so the complete trainer workflow can be demonstrated.
+----------------------------------
+The real external application form is NOT created in this package. It is owned/provided by
+another project team member. The actual form URL, eligibility rules and redirect must still be supplied by the form teammate; see `ROUTING_INTEGRATION.md`.
 
 Candidate flow
 --------------
-index.html
-  -> choose preferred date, duration and available time
+External smart-routing form (owned by teammate; eligibility logic not included here)
+  -> eligible candidates are redirected to index.html
+  -> choose a date (within the next 7 days), duration (15/30/45/60 minutes) and available time
   -> details.html
-  -> submit appointment request (NOT confirmed)
-  -> application.html
-  -> open external form when its URL is supplied
+  -> enter name / email / phone (all required, marked with a red *)
+  -> appointment is CONFIRMED immediately
   -> status.html
-  -> trainer approval
-  -> payment
-  -> confirmed
+  -> confirmation details + appointment ID
 
 Trainer flow
 ------------
 trainer.html
-  -> Appointment Requests
-     - search candidate/email/request ID
-     - filter exact date
-     - filter month
-     - filter preferred time
-     - filter status
-     - sort by priority/date/newest
-     - view candidate + request + form information
-     - accept/reject
+  -> Confirmed appointments
+     - search candidate/email/appointment ID
+     - filter by exact date, month, or time
+     - sort by date/time or newest
+     - view appointment details (read-only — there's no accept/reject anymore)
   -> Availability
      - view weekly schedule
      - modify weekly timings
-     - mark full dates or time ranges unavailable
+     - mark full dates or time ranges unavailable (busy / on leave / holiday)
 
 Demo behavior
 -------------
 - Data is stored in localStorage only. This is NOT the production backend.
-- Pending requests may share the same preferred slot so the trainer can compare them.
-- Accepted/confirmed appointments block overlapping slots.
-- Priority is a DEMO indicator based on score only. The real priority rule must be confirmed.
-- Payment is simulated.
-- Notification is represented in the UI only.
-- Google Calendar is represented as a future integration point.
-
-External form setup
--------------------
-Open shared.js and set:
-
-EXTERNAL_FORM_URL: 'YOUR_REAL_FORM_URL'
-
-When configured, the application page passes the appointment ID as:
-
-?appointment_id=REQUEST_ID
-
-The exact response/webhook/integration mechanism depends on how the teammate's form is built and must be agreed before backend integration.
+- Only a CONFIRMED appointment can block a slot — there's no other status left to consider.
+- Notification (confirmation email) is represented in the UI copy only, not actually sent.
+- The candidate booking pages are wired to the Django API. The backend uses SQLite by default for this phase and requires trainer OAuth authorization plus schedule setup before live calendar booking works. The trainer dashboard schedule editor and appointment list remain localStorage demo features.
 
 How to run
 -----------
 1. Open this folder in VS Code.
 2. Use Live Server (recommended) on index.html.
-3. Candidate flow: index.html -> details.html -> application.html.
-4. For the trainer demonstration, open trainer.html directly. It is intentionally not linked from the candidate pages.
-5. Click “Load demo requests” in the trainer portal to populate sample requests.
-6. Use the trainer portal to review and accept/reject requests.
-7. Use the Availability tab to change timings and observe slot changes on the candidate page.
+3. Candidate flow: index.html -> details.html -> status.html.
+4. For the trainer demonstration, open trainer.html directly. It is intentionally not linked
+   from the candidate pages.
+5. Click "Load demo appointments" in the trainer portal to populate sample confirmed bookings.
+6. Use the Availability tab to change timings or mark a day unavailable, then go back to
+   index.html and pick that date — the change is reflected immediately.
 
 Files
 -----
 index.html              Candidate slot selection
-details.html/js         Candidate details and request creation
-application.html        External-form integration placeholder + demo simulation
-status.html/js          Candidate request status / payment demo
+details.html/js         Candidate details + direct booking confirmation
+status.html/js          Candidate confirmation screen / appointment lookup by ID
+application.html        External-form integration placeholder (untouched, see note above)
 trainer.html/js         Trainer portal and availability management
-trainer-requests.js     Trainer inbox, filters, priority indicator, accept/reject
+trainer-requests.js     Trainer confirmed-appointments list, filters (no accept/reject)
 shared.js               Shared demo data, status model, slot logic and integration configuration
 style.css               UI styling
-PROJECT_REQUIREMENTS.md Confirmed scope, responsibilities, assumptions and questions
+Updated_System_Use_Case_Diagram.png  Regenerated to remove the old accept/reject + payment use
+                         cases and reflect direct booking
+API_CONTRACT.md         Backend handoff contract, including smart-routing and calendar flow
+ROUTING_INTEGRATION.md  Handoff contract for the external screening/routing form
+PROJECT_REQUIREMENTS.md Updated scope, responsibilities, assumptions and open questions
 
-NOT PRODUCTION YET
+NOT PRODUCTION YET — IMPORTANT
 ------------------
 The following must be connected in the backend stage:
-- database
-- real API endpoints
-- trainer authentication
-- real external-form response integration
-- actual priority rule
-- notification service
-- payment gateway
-- Google Calendar API
-- slot-hold/expiry rule
+- database (PostgreSQL, per the meeting decision)
+- production PostgreSQL setup (next step; SQLite is used locally for this phase)
+- trainer authentication (if confirmed as needed)
+- real external-form role, if the team decides it still applies
+- notification service (confirmation email)
+- Configure OAuth credentials and verify a real Google Calendar event + Meet link (see backend/README_GOOGLE_CALENDAR.md)
+- a real double-booking check that isn't just localStorage on one browser
 
 Do not present the demo localStorage behavior as the final backend implementation.
+
+GOOGLE CALENDAR API SCAFFOLD
+----------------------------
+See backend/README_GOOGLE_CALENDAR.md for setup, service-account sharing, API endpoints, and limitations. The API integration is not live until the team configures valid credentials and tests it against the actual trainer calendar.
+
+IMPORTANT PROTOTYPE LIMITATIONS
+- The candidate-facing HTML/JavaScript prototype uses browser localStorage unless explicitly connected to the Django API.
+- Google Calendar integration requires a configured Google Cloud project, API credentials, and access to the target calendar.
+- The Django API is not production-ready; trainer authentication, CSRF protection, deployment hardening, separate confirmation emails, and trainer-dashboard/API integration remain future work.
+- Current selectable durations are 15, 30, 45 and 60 minutes based on the student’s recollection of the Calendly walkthrough; confirm the final list with the mentor.

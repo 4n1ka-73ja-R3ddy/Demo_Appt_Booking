@@ -6,7 +6,11 @@ const today = localISO(new Date());
 $("day").innerHTML = WEEK_ORDER.map(d => `<option>${d}</option>`).join("");
 $("leaveDate").min = today;
 
-const persist = () => write(KEYS.avail, avail);
+// FIX: this previously wrote to KEYS.avail, which doesn't exist on the KEYS object (shared.js
+// defines KEYS.availability) — so trainer edits were saved under the key "undefined" and were
+// never actually read back by getAvail()/getSlots(). Using KEYS.availability here is what makes
+// "trainer changes availability -> user sees different slots" actually work.
+const persist = () => write(KEYS.availability, avail);
 function flash(id) { const m = $(id); m.classList.remove("hidden"); setTimeout(() => m.classList.add("hidden"), 2200); }
 function showError(id, msg) { const e = $(id); e.textContent = msg || ""; e.classList.toggle("hidden", !msg); }
 
@@ -78,7 +82,7 @@ $("leaveList").addEventListener("click", e => {
 
 $("resetBtn").addEventListener("click", () => {
   if (!confirm("Reset availability and all demo bookings?")) return;
-  localStorage.removeItem(KEYS.avail); localStorage.removeItem(KEYS.bookings);
+  localStorage.removeItem(KEYS.availability); localStorage.removeItem(KEYS.bookings);
   location.reload();
 });
 
